@@ -7,6 +7,7 @@ add_executable(Particule Particule.cxx)
 
 add_custom_target(run
     COMMAND ./Particule > ${CMAKE_SOURCE_DIR}/systeme_solaire.txt
+    COMMAND ${CMAKE_SOURCE_DIR}/script_visual.py
     DEPENDS Particule
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )

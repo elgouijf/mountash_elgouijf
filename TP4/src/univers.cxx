@@ -101,30 +101,6 @@ std::vector<cellule>& univers::getCellules() {
 }
 
 
-// les particules étant 3D, on peut faire une diff dimensionnelle pour les cas d'un univers 1D et 2D
-/* vecteur univers::diff_dimensionnelle(const vecteur& a, const vecteur& b) const {
-    vecteur diff = a - b;
-    if (dim == 1) {
-        diff[1] = 0.0;
-        diff[2] = 0.0;
-    } else if (dim == 2) {
-        diff[2] = 0.0;
-    }
-    return diff;
-}
-
-vecteur univers::projection_dimensionnelle(const vecteur& v) const {
-    return diff_dimensionnelle(v, vecteur());
-} */
-
-
-// void univers::ajoute_particule(particule* p) {
-//     this->particules.push_back(p);
-//     this->num_particules++;
-
-//     place_particule_dans_cellule(p);
-// }
-
 void univers::ajoute_particule(particule* p) {
     vecteur pos = p->getPosition();
     vecteur vit = p->getVitesse();
@@ -150,26 +126,16 @@ void univers::ajoute_particule(particule* p) {
     place_particule_dans_cellule(p);
 }
 
-// void univers::evolue_particules(double dt) {
-//     for (particule* p : particules) {
-//         p->setForce(projection_dimensionnelle(p->getForce()));
-//         p->setVitesse(projection_dimensionnelle(p->getVitesse()));
-
-//         p->evolue(dt);
-
-//         p->setPosition(projection_dimensionnelle(p->getPosition()));
-//         p->setVitesse(projection_dimensionnelle(p->getVitesse()));
-//     }
-
-//     place_particules_dans_cellules();
-// }
-
 void univers::evolue_particules(double dt) {
     for (particule* p : particules) {
-        p->evolue(dt);
+        p->avance_position_verlet(dt);
     }
-
     place_particules_dans_cellules();
+    calcule_forces();
+
+    for (particule* p : particules) {
+        p->avance_vitesse_verlet(dt);
+    }
 }
 
 void univers::vide_cellules() {
@@ -305,81 +271,7 @@ void univers::initialise_cellules() {
     }
 }
 
-/* void univers::calcule_forces(){
-    //  Remise à zéro de toutes les forces
-    for (particule* p : particules) {
-        p->setForce(vecteur());
-    }
 
-    // Placer les particules dans les cellules
-    //place_particules_dans_cellules(); pas la peine car evolue met chcune des particules dans leurs bonnes endroits
-
-    const double r_cut2 = r_cut * r_cut;
-    const double sigma2 = sigma * sigma;
-    const double coeff = 24.0 * this->eps;
-
-    //  Calculer les forces en utilisant les cellules
-    for (const cellule& c : this->cellules) {
-        const auto& parts = c.getParticules();
-
-        for (const cellule* v : c.getVoisins()){
-            // il n' ya que les voisins qui peuvent etre soumises à l'effet des particules de cette cellule
-            if (v < &c){
-                // cellule déjà rencontré (car on parcour par ordre croissant de ponteurs)
-                continue;
-            }
-
-            if (v == &c){
-                // meme cellule, il faut calculer les interactions à l'intérieur
-                // on a besoin de vérifier si dist < r_cut, car la taille de la cellule est rcut dans chaque direction, donc la diag par exemple peut etre trop grande
-                
-                for (size_t i = 0; i < parts.size(); ++i) {
-                    for (size_t j = i + 1; j < parts.size(); ++j) {
-
-                        particule* pi = parts[i];
-                        particule* pj = parts[j];
-
-                        vecteur diff = pj->getPosition() - pi->getPosition();
-                        double dist2 = diff.norme2() + 1e-12;
-
-                        if (dist2 > r_cut2) continue;
-
-                        double sr2 = sigma2 / dist2;
-                        double sr6 = sr2 * sr2 * sr2;
-                        double sr12 = sr6 * sr6;
-
-                        vecteur Fij = diff * (coeff * (2.0 * sr12 - sr6) / dist2);
-
-                        pi->ajouterForce(Fij);
-                        pj->ajouterForce(Fij * (-1.0));
-                    }
-                }
-            }
-            else {
-                // Ici pas besoin de faire un parcours par idx, car les cellules sont différents don con aura jamais pi = pj
-                const auto& vois = v->getParticules();
-                
-                for (particule* pi : parts) {
-                    for (particule* pj : vois) {
-                        vecteur diff = pj->getPosition() - pi->getPosition();
-                        double dist2 = diff.norme2() + 1e-12;
-
-                        if (dist2 > r_cut2) continue;
-
-                        double sr2 = sigma2 / dist2;
-                        double sr6 = sr2 * sr2 * sr2;
-                        double sr12 = sr6 * sr6;
-
-                        vecteur Fij = diff * (coeff * (2.0 * sr12 - sr6) / dist2);
-
-                        pi->ajouterForce(Fij);
-                        pj->ajouterForce(Fij * (-1.0));
-                    }
-                }
-            }
-        }
-    }
-} */
 
 
 void univers::calcule_forces(){
@@ -436,7 +328,8 @@ void univers::calcule_forces(){
                         double sr6 = sr2 * sr2 * sr2;
                         double sr12 = sr6 * sr6;
 
-                        double coeff_force = coeff * (2.0 * sr12 - sr6) / dist2;
+                        //double coeff_force = coeff * (2.0 * sr12 - sr6) / dist2;
+                        double coeff_force = coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
 
                         pi->ajouterForce(dx * coeff_force, dy * coeff_force, dz * coeff_force);
                         pj->ajouterForce(-dx * coeff_force, -dy * coeff_force, -dz * coeff_force);
@@ -465,7 +358,8 @@ void univers::calcule_forces(){
                         double sr6 = sr2 * sr2 * sr2;
                         double sr12 = sr6 * sr6;
 
-                        double coeff_force = coeff * (2.0 * sr12 - sr6) / dist2;
+                        //double coeff_force = coeff * (2.0 * sr12 - sr6) / dist2;
+                        double coeff_force = coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
 
                         pi->ajouterForce(dx * coeff_force, dy * coeff_force, dz * coeff_force);
                         pj->ajouterForce(-dx * coeff_force, -dy * coeff_force, -dz * coeff_force);

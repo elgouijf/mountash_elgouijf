@@ -1,14 +1,10 @@
 #include "../include/cellule.hxx"
 
 cellule::cellule(){
-     // vecteur vide
+    // vecteur vide
     this->num_particules = 0;
     this->particules = std::vector<particule*>();
-    this->voisins = std::vector<cellule*>(); // je veux pas de copies
-    //this->dim = 3; // exemple de dimension
-    //this->Lds = std::vector<double>(this->dim, 10.0);
-    //this->r_cut = 2.5; // exemple de distance de coupure
-    
+    this->voisins = std::vector<cellule*>(); // je veux pas de copies   
 }
 
 cellule::cellule(std::vector<particule*>& v, std::vector<cellule*>& voisins){

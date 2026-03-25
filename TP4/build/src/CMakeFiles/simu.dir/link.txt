@@ -1,0 +1,1 @@
+/usr/bin/c++  -Wall -O3 -march=native -Wl,--dependency-file=CMakeFiles/simu.dir/link.d CMakeFiles/simu.dir/main.cxx.o -o simu  libparticules.a

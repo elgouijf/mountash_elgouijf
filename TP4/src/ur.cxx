@@ -18,7 +18,7 @@ int main() {
 
     file.close();
 
-    int code = std::system("python3 plot_ur.py");
+    int code = std::system("python3 src/python_plot/plot_ur.py");
     if (code != 0) {
         std::cerr << "Erreur lors de l'execution de plot_ur.py\n";
         return 1;

@@ -1,0 +1,1 @@
+/usr/bin/c++  -Wall -O3 -march=native -Wl,--dependency-file=CMakeFiles/test_3d.dir/link.d CMakeFiles/test_3d.dir/test_3d.cxx.o -o test_3d  ../src/libparticules.a

@@ -10,6 +10,7 @@ particule:: particule(){
     position = vecteur();
     vitesse = vecteur();
     force = vecteur();
+    force_old = vecteur();
     //voisins = std::vector<particule>();
 }
 
@@ -20,6 +21,7 @@ particule:: particule(int id,int type,double m,vecteur p,vecteur v){
     this->position = p;
     this->vitesse = v;
     this->force = vecteur();
+    this->force_old = vecteur();
     //this->voisins = voisins;
 }
 
@@ -28,20 +30,35 @@ int particule::getId() const { return id; }
 const vecteur& particule::getPosition() const { return position; }
 const vecteur& particule::getVitesse() const { return vitesse; }
 const vecteur& particule::getForce() const { return force; }
+const vecteur& particule::getForceOld() const { return force_old; }
 double particule::getMasse() const { return masse; }      
 int particule::getType() const { return type; }  
 
 void particule::setForce(const vecteur& f) { this->force = f; }
+void particule::setForceOld(const vecteur& f) { this->force_old = f; }
 void particule::setPosition(const vecteur& p) { this->position = p; }
 void particule::setVitesse(const vecteur& v) { this->vitesse = v; }
 
+
 void particule::evolue(double dt){
-    position = position + vitesse * dt;
     if (masse == 0.0) return;
     vitesse = vitesse + force * dt / masse;
+    position = position + vitesse * dt;
     force = vecteur();
 }
 
+void particule::avance_position_verlet(double dt) {
+    if (masse == 0.0) return;
+
+    force_old = force;
+    position = position + vitesse * dt + force * (0.5 * dt * dt / masse);
+}
+
+void particule::avance_vitesse_verlet(double dt) {
+    if (masse == 0.0) return;
+
+    vitesse = vitesse + (force + force_old) * (0.5 * dt / masse);
+}
 
 void particule::ajouterForce(double fx, double fy, double fz) {
     force.ajoute(fx, fy, fz);

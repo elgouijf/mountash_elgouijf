@@ -33,10 +33,6 @@ class univers {
         void place_particules_dans_cellules();
         void initialise_cellules();
         int indice_cellule(int ix, int iy = 0, int iz = 0) const;
-
-        //vecteur diff_dimensionnelle(const vecteur& a, const vecteur& b) const;
-        //vecteur projection_dimensionnelle(const vecteur& v) const;
-
         // getters
         const std::vector<particule*>& getParticules() const;
         int getNumParticules() const;

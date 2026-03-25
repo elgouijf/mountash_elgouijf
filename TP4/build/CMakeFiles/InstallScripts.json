@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/faical/Education/ENSIMAG/2A/Lessons/C++/TP4/build/cmake_install.cmake",
+		"/home/faical/Education/ENSIMAG/2A/Lessons/C++/TP4/build/src/cmake_install.cmake",
+		"/home/faical/Education/ENSIMAG/2A/Lessons/C++/TP4/build/test/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

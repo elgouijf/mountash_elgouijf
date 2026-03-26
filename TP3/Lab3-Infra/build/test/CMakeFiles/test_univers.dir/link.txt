@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wall -Wl,--dependency-file=CMakeFiles/test_univers.dir/link.d CMakeFiles/test_univers.dir/test_univers.cxx.o -o test_univers  ../src/libparticules.a

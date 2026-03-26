@@ -1,4 +1,0 @@
-/home/ensimag/Particules-Simulations-with-C-/TP2/build/CMakeFiles/Particule.dir
-/home/ensimag/Particules-Simulations-with-C-/TP2/build/CMakeFiles/run.dir
-/home/ensimag/Particules-Simulations-with-C-/TP2/build/CMakeFiles/edit_cache.dir
-/home/ensimag/Particules-Simulations-with-C-/TP2/build/CMakeFiles/rebuild_cache.dir

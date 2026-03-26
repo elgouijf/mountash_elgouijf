@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wall -Wl,--dependency-file=CMakeFiles/test_point.dir/link.d CMakeFiles/test_point.dir/test_point.cxx.o -o test_point  ../src/libparticules.a

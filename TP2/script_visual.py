@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from collections import defaultdict
 
+### C'est un script pour visualiser avec matplotlib l'évolution du système
+
 def main():
     corps_data = {}
     temps = []

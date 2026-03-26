@@ -11,3 +11,5 @@ add_custom_target(run
     DEPENDS Particule
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+
+add_subdirectory(doc)

@@ -1,9 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/home/faical/Education/ENSIMAG/2A/Lessons/C++/cppma-spring2025-lab3-infra/Lab3-Infra/build/cmake_install.cmake",
-		"/home/faical/Education/ENSIMAG/2A/Lessons/C++/cppma-spring2025-lab3-infra/Lab3-Infra/build/src/cmake_install.cmake",
-		"/home/faical/Education/ENSIMAG/2A/Lessons/C++/cppma-spring2025-lab3-infra/Lab3-Infra/build/test/cmake_install.cmake"
-	],
-	"Parallel" : false
-}

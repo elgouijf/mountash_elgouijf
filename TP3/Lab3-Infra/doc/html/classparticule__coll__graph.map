@@ -1,5 +1,0 @@
-<map id="particule" name="particule">
-<area shape="rect" id="Node000001" title="Représente une particule dans l&#39;espace." alt="" coords="5,123,84,148"/>
-<area shape="rect" id="Node000002" href="$classvecteur.html" title="Représente un vecteur en 3 dimensions." alt="" coords="9,5,80,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="47,44,47,123,42,123,42,44"/>
-</map>

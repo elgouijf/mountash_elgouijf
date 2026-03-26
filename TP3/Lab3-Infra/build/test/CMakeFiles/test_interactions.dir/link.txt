@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wall -Wl,--dependency-file=CMakeFiles/test_interactions.dir/link.d CMakeFiles/test_interactions.dir/test_interactions.cxx.o -o test_interactions  ../src/libparticules.a

@@ -3,7 +3,7 @@
 
 int main() {
     univers u;
-    int n = 25; // 25^3 particules
+    int n = 1 << 5; // (2^5)^3 particules
     double masse = 1.0;
     vecteur vitesse(0.0, 0.0, 0.0); // vitesse uniforme
 
@@ -12,8 +12,7 @@ int main() {
         for (int j = 0; j < n; ++j) {
             for (int k = 0; k < n; ++k) {
                 vecteur position(i / double(n-1), j / double(n-1), k / double(n-1));
-                particule* p = new particule(i*n*n + j*n + k, 0, masse, position, vitesse);
-                u.ajoute_particule(p);
+                u.ajoute_particule(particule(i*n*n + j*n + k, 0, masse, position, vitesse));
             }
         }
     }

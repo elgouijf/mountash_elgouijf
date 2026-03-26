@@ -1,0 +1,9 @@
+<map id="interaction_univ" name="interaction_univ">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,132,56"/>
+<area shape="rect" id="Node000002" href="$classunivers.html#a8b98b896de894430c1ac554d91c8bfa4" title="Ajoute une particule à l&#39;univers." alt="" coords="180,5,363,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,33,166,28,167,34,133,38"/>
+<area shape="rect" id="Node000003" href="$classunivers.html#adfd8781ca7a10eb83e8b199e77e64d7f" title="Calcule les forces entre particules." alt="" coords="186,55,357,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="133,48,173,53,172,58,132,53"/>
+<area shape="rect" id="Node000004" href="$classvecteur.html#a2dde086b5b3d8503b190757d96665cde" title="Calcule la norme du vecteur." alt="" coords="411,55,532,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="357,65,397,65,397,70,357,70"/>
+</map>

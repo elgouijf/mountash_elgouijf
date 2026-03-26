@@ -1,0 +1,9 @@
+<map id="operator&lt;&lt;" name="operator&lt;&lt;">
+<area shape="rect" id="Node000001" title="Affichage d&#39;un vecteur." alt="" coords="5,55,104,80"/>
+<area shape="rect" id="Node000002" href="$classvecteur.html#a716c36f6651518aa58194bfedf43e5e8" title="Retourne la coordonnée x." alt="" coords="152,5,261,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,52,153,33,154,38,95,57"/>
+<area shape="rect" id="Node000003" href="$classvecteur.html#aeea36061afdcbbde5182fe3ae94967bf" title="Retourne la coordonnée y." alt="" coords="153,55,261,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="104,65,139,65,139,70,104,70"/>
+<area shape="rect" id="Node000004" href="$classvecteur.html#a82fabd96ef74be4ed82f8a2fa2842412" title="Retourne la coordonnée z." alt="" coords="152,104,261,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="95,78,154,97,153,102,94,83"/>
+</map>

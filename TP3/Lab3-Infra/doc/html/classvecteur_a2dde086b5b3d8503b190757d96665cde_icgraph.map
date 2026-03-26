@@ -1,0 +1,13 @@
+<map id="vecteur::norme" name="vecteur::norme">
+<area shape="rect" id="Node000001" title="Calcule la norme du vecteur." alt="" coords="668,31,789,56"/>
+<area shape="rect" id="Node000002" href="$classunivers.html#adfd8781ca7a10eb83e8b199e77e64d7f" title="Calcule les forces entre particules." alt="" coords="449,5,620,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="654,36,620,32,620,26,655,31"/>
+<area shape="rect" id="Node000006" href="$test__point_8cxx.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title=" " alt="" coords="507,55,562,80"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="655,55,563,67,562,61,654,50"/>
+<area shape="rect" id="Node000003" href="$run__simulation_8hxx.html#aefbe18553930358522240607c150e6f0" title=" " alt="" coords="275,5,401,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="435,21,401,21,401,15,435,15"/>
+<area shape="rect" id="Node000004" href="$run__simulation_8hxx.html#a03fe1fc552311e240a5fd17fcca1d35d" title=" " alt="" coords="108,5,227,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="261,21,227,21,227,15,261,15"/>
+<area shape="rect" id="Node000005" href="$test__interactions__1_8cxx.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title=" " alt="" coords="5,5,60,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="94,21,60,21,60,15,94,15"/>
+</map>

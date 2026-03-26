@@ -1,0 +1,7 @@
+<map id="vecteur::getX" name="vecteur::getX">
+<area shape="rect" id="Node000001" title="Retourne la coordonnée x." alt="" coords="192,31,301,56"/>
+<area shape="rect" id="Node000002" href="$classvecteur.html#a03f16b28776fee70e2779c5fb4ad57d8" title="Soustraction de deux vecteurs." alt="" coords="5,5,144,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,36,144,31,145,26,179,31"/>
+<area shape="rect" id="Node000003" href="$vecteur_8cxx.html#ada328045c45ad406009ce2a41f3791f3" title="Affichage d&#39;un vecteur." alt="" coords="25,55,124,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="179,55,124,63,124,58,178,50"/>
+</map>

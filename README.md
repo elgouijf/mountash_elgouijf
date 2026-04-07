@@ -1,1 +1,2 @@
-To be written down the line
+Veuillez trouver notre rendu intermédiaire dans la branche Rendu_inter.
+Cette branche a été créée récemment afin d’éviter que de nouveaux commits n’affectent le contenu soumis pour le rendu intermédiaire. Toutefois, le rendu lui-même correspond bien à la date de dépôt demandée.

@@ -1,0 +1,11 @@
+# Dossiers générés partout dans le repo
+**/build/
+**/frames/
+**/vtk_frames/
+**/vtu_frames/
+
+# Fichiers générés
+*.o
+*.out
+*.exe
+*.html

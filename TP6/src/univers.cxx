@@ -380,7 +380,7 @@ void univers::initialise_cellules() {
  * @param zmin Condition sur la face z = 0.
  * @param zmax Condition sur la face z = Lz.
  */
-void univers::setConditionLimites(ConditionLimite cond_xmin, ConditionLimite cond_xmax,
+void univers::setConditionsLimites(ConditionLimite cond_xmin, ConditionLimite cond_xmax,
                                 ConditionLimite cond_ymin, ConditionLimite cond_ymax,
                                 ConditionLimite cond_zmin, ConditionLimite cond_zmax) {
     this->condl_xmin = cond_xmin;
@@ -398,7 +398,7 @@ void univers::setConditionLimites(ConditionLimite cond_xmin, ConditionLimite con
  * @return false si la particule doit être absorbée, true sinon.
  */
 
-bool univers::applique_conditions_limites_particules(particule* p){
+bool univers::applique_conditions_limites_particule(particule* p){
     vecteur pos = p->getPosition();
     vecteur vit = p->getVitesse();
 

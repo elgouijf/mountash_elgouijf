@@ -1,4 +1,4 @@
-#include "../include/io.hxx"
+#include "io.hxx"
 
 #include <fstream>
 #include <iomanip>

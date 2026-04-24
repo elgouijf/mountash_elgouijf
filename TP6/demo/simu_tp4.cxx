@@ -24,13 +24,9 @@
 #include <cstdlib>
 
 
-#include "../include/univers.hxx"
-#include "../include/io.hxx"
-#
+#include "univers.hxx"
+#include "io.hxx"
 
-#ifndef PROJECT_SOURCE_DIR
-#define PROJECT_SOURCE_DIR "."
-#endif
 
 
 

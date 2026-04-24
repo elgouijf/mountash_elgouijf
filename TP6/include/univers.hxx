@@ -3,7 +3,7 @@
 
 #include "particule.hxx"
 #include <vector>
-#include "../include/cellule.hxx"
+#include "cellule.hxx"
 #include <iostream>
 #include "conditionLimite.hxx"
 

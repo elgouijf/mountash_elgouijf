@@ -1,4 +1,4 @@
-#include "../include/cellule.hxx"
+#include "cellule.hxx"
 
 cellule::cellule(){
     // vecteur vide

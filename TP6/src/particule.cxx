@@ -1,4 +1,4 @@
-#include "../include/particule.hxx"
+#include "particule.hxx"
 
 #include <iostream>
 
@@ -13,10 +13,10 @@ particule::particule(){
     id = 0;
     type = 0;
     masse = 0.0;
-    position = vecteur();
-    vitesse = vecteur();
-    force = vecteur();
-    force_old = vecteur();
+    position = vecteur{};
+    vitesse = vecteur{};
+    force = vecteur{};
+    force_old = vecteur{};
 }
 
 /**
@@ -34,8 +34,8 @@ particule::particule(int id, int type, double m, vecteur p, vecteur v){
     this->masse = m;
     this->position = p;
     this->vitesse = v;
-    this->force = vecteur();
-    this->force_old = vecteur();
+    this->force = vecteur{};
+    this->force_old = vecteur{};
 }
 
 int particule::getId() const { return id; }
@@ -63,7 +63,7 @@ void particule::evolue(double dt){
     if (masse == 0.0) return;
     vitesse = vitesse + force * dt / masse;
     position = position + vitesse * dt;
-    force = vecteur();
+    force = vecteur{};
 }
 
 /**

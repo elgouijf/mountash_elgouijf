@@ -13,7 +13,6 @@ add_executable(simu
     main.cxx
 )
 
-target_compile_definitions(simu PRIVATE PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 # Lier l'exécutable principal avec la bibliothèque
 target_link_libraries(simu particules)
 

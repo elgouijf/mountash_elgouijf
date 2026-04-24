@@ -1,20 +1,11 @@
-#include "../include/vecteur.hxx"
+#include "vecteur.hxx"
 #include <cmath>
 #include <iostream>
+#include <cassert>
+
 
 /**
- * @brief Construit un vecteur nul.
- *
- * Initialise les composantes x, y et z à 0.
- */
-vecteur::vecteur(){
-    x = 0.0;
-    y = 0.0;
-    z = 0.0;
-}
-
-/**
- * @brief Construit un vecteur à partir de ses composantes.
+ * @brief Construit un vecteur à partir de ses composantes, avec (0,0,0) par défaut.
  *
  * @param x_val Composante selon x.
  * @param y_val Composante selon y.
@@ -99,10 +90,10 @@ const double& vecteur::operator[](int index) const {
  * @throws std::out_of_range si l'indice est invalide.
  */
 double& vecteur::operator[](int index) {
+    assert(index >= 0 && index < 3);
     if (index == 0) return x;
-    else if (index == 1) return y;
-    else if (index == 2) return z;
-    else throw std::out_of_range("Index out of range for vecteur");
+    if (index == 1) return y;
+    return z;
 }
 
 /**

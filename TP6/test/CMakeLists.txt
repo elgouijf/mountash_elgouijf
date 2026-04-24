@@ -26,7 +26,7 @@ target_link_libraries(unit_tests
     GTest::gtest_main
 )
 
-target_compile_definitions(unit_tests PRIVATE PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+
 
 include(GoogleTest)
 gtest_discover_tests(unit_tests)

@@ -6,9 +6,6 @@
 #include <filesystem>
 #include <vector>
 
-#ifndef PROJECT_SOURCE_DIR
-#define PROJECT_SOURCE_DIR "."
-#endif
 
 /**
  * @brief Calcule le potentiel de Lennard-Jones pour une distance donnée.

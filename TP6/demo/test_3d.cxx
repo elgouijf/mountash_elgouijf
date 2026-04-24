@@ -10,11 +10,8 @@
 #include <cstdlib>
 #include <string>
 
-#include "../include/univers.hxx"
-
-#ifndef PROJECT_SOURCE_DIR
-#define PROJECT_SOURCE_DIR "."
-#endif
+#include "univers.hxx"
+#include "io.hxx"
 
 /**
  * @brief Sauvegarde une frame dans un fichier texte.
@@ -37,91 +34,7 @@ void sauvegarde_frame(std::ofstream& file, const univers& u, int frame_id) {
     }
 } 
 
-/**
- * @brief Sauvegarde une frame au format VTK.
- *
- * Le fichier généré peut être ouvert dans ParaView.
- *
- * @param u Univers contenant les particules.
- * @param frame_id Identifiant de la frame.
- * @param dossier Dossier dans lequel écrire le fichier VTK.
- */
-void sauvegarde_frame_vtk(const univers& u, int frame_id, const std::string& dossier = "vtk_frames_3d") {
-    std::ostringstream nom;
-    nom << dossier << "/frame_"
-        << std::setw(6) << std::setfill('0') << frame_id
-        << ".vtk";
 
-    std::ofstream file(nom.str());
-    if (!file.is_open()) {
-        std::cerr << "Impossible d'ouvrir " << nom.str() << "\n";
-        return;
-    }
-
-    const std::vector<particule*>& particules = u.getParticules();
-    int N = particules.size();
-
-    file << "# vtk DataFile Version 3.0\n";
-    file << "Frame " << frame_id << "\n";
-    file << "ASCII\n";
-    file << "DATASET POLYDATA\n";
-
-    file << "POINTS " << N << " float\n";
-    for (particule* p : particules) {
-        const vecteur& pos = p->getPosition();
-        file << pos[0] << " " << pos[1] << " " << pos[2] << "\n";
-    }
-
-    file << "\nVERTICES " << N << " " << 2 * N << "\n";
-    for (int i = 0; i < N; ++i) {
-        file << "1 " << i << "\n";
-    }
-
-    file << "\nPOINT_DATA " << N << "\n";
-
-    file << "SCALARS type int 1\n";
-    file << "LOOKUP_TABLE default\n";
-    for (particule* p : particules) {
-        file << p->getType() << "\n";
-    }
-}
-
-/**
- * @brief Génère le fichier animation.vtk.series pour ParaView.
- *
- * Ce fichier décrit la suite temporelle des frames VTK afin
- * de permettre leur lecture comme animation.
- *
- * @param nb_frames Nombre total de frames sauvegardées.
- * @param dt Pas de temps de la simulation.
- * @param save_every Nombre d'itérations entre deux sauvegardes.
- * @param dossier Dossier contenant les fichiers VTK.
- */
-void ecrire_fichier_series_json(int nb_frames, double dt, int save_every, const std::string& dossier = "vtk_frames_3d") {
-    std::ofstream file(dossier + "/animation.vtk.series");
-    if (!file.is_open()) {
-        std::cerr << "Impossible d'ouvrir " << dossier << "/animation.vtk.series\n";
-        return;
-    }
-
-    file << "{\n";
-    file << "  \"file-series-version\" : \"1.0\",\n";
-    file << "  \"files\" : [\n";
-
-    for (int i = 0; i < nb_frames; ++i) {
-        std::ostringstream nom;
-        nom << "frame_" << std::setw(6) << std::setfill('0') << i << ".vtk";
-
-        double temps = i * save_every * dt;
-
-        file << "    { \"name\" : \"" << nom.str() << "\", \"time\" : " << temps << " }";
-        if (i != nb_frames - 1) file << ",";
-        file << "\n";
-    }
-
-    file << "  ]\n";
-    file << "}\n";
-}
 
 /**
  * @brief Recherche le script Python de visualisation 3D.
@@ -160,6 +73,7 @@ std::string trouver_script_python_3d() {
  * Modes disponibles :
  * - 't' : export texte + visualisation Python
  * - 'v' : export VTK + génération du fichier animation.vtk.series
+ * - 'u' : export VTU + génération du fichier animation.vtu.series
  *
  * @return EXIT_SUCCESS si l'exécution se termine correctement,
  *         EXIT_FAILURE en cas d'erreur.
@@ -167,11 +81,11 @@ std::string trouver_script_python_3d() {
 int main(){
 
     char mode;
-    std::cout << "Choisir le mode : (t = txt, v = vtk) : ";
+    std::cout << "Choisir le mode : (t = txt, v = vtk, u = vtu) : ";
     std::cin >> mode;
 
-    if (mode != 't' && mode != 'v') {
-        std::cerr << "Mode invalide. Choisir 't' ou 'v'.\n";
+    if (mode != 't' && mode != 'v' && mode != 'u') {
+        std::cerr << "Mode invalide. Choisir 't', 'v' ou 'u'.\n";
         return EXIT_FAILURE;
     }
 
@@ -269,7 +183,11 @@ int main(){
     }
 
     if (mode == 'v') {
-        std::filesystem::create_directories("vtk_frames_3d");
+    std::filesystem::create_directories("vtk_frames_3d");
+    }
+
+    if (mode == 'u') {
+        std::filesystem::create_directories("vtu_frames_3d");
     }
 
     int frame_id = 0;
@@ -289,8 +207,12 @@ int main(){
         if (frame % save_every == 0) {
             if (mode == 't') {
                 sauvegarde_frame(file, uni, frame_id);
-            } else {
+            }
+            else if (mode == 'v') {
                 sauvegarde_frame_vtk(uni, frame_id, "vtk_frames_3d");
+            }
+            else if (mode == 'u') {
+                sauvegarde_frame_vtu(uni, frame_id, "vtu_frames_3d");
             }
             frame_id++;
         }
@@ -319,10 +241,17 @@ int main(){
     }
 
     if (mode == 'v') {
-        ecrire_fichier_series_json(frame_id, dt, save_every, "vtk_frames_3d");
+    ecrire_fichier_series_json(frame_id, dt, save_every, "vtk_frames_3d", "vtk");
+    std::cout << "Fichier de series genere : "
+              << std::filesystem::absolute("vtk_frames_3d/animation.vtk.series")
+              << "\n";
+    }
+
+    if (mode == 'u') {
+        ecrire_fichier_series_json(frame_id, dt, save_every, "vtu_frames_3d", "vtu");
         std::cout << "Fichier de series genere : "
-                  << std::filesystem::absolute("vtk_frames_3d/animation.vtk.series")
-                  << "\n";
+                << std::filesystem::absolute("vtu_frames_3d/animation.vtk.series")
+                << "\n";
     }
 
     return EXIT_SUCCESS;

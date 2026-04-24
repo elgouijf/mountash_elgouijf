@@ -1,4 +1,4 @@
-#include "../include/univers.hxx"
+#include "univers.hxx"
 #include <cmath>
 
 /**
@@ -10,6 +10,10 @@
  * - des paramètres de Lennard-Jones par défaut.
  *
  * La grille de cellules est ensuite initialisée.
+ * verdict: univers est propriétaire des particules stockées dans particules.
+ * Les cellules ne possèdent pas les particules ,
+ * elles ne stockent que des pointeurs vers celles-ci afin d’éviter les copies
+ * et de permettre leur reclassification spatiale à chaque pas de temps.
  */
 univers::univers(){
     this->num_particules = 0;
@@ -285,9 +289,17 @@ int univers::indice_cellule(int ix, int iy, int iz) const {
 /**
  * @brief Initialise la grille de cellules et les relations de voisinage.
  *
- * Chaque cellule reçoit la liste de ses voisines immédiates.
- * Cela permet ensuite de limiter le calcul des interactions
- * aux particules proches dans l'espace.
+ * Chaque cellule identifie ses voisines dans un voisinage local (cube de taille 3^dim).
+ * Afin d'éviter de traiter deux fois les mêmes interactions entre particules,
+ * on ne conserve que les cellules voisines dont l'indice linéaire est supérieur
+ * ou égal à celui de la cellule courante.
+ *
+ * Cette convention impose un parcours orienté du voisinage et garantit que chaque
+ * paire de cellules est traitée une seule fois. En exploitant la troisième loi
+ * de Newton, la force opposée est appliquée simultanément aux deux particules,
+ * éliminant ainsi les calculs redondants.
+ *
+ * Cette optimisation réduit significativement le coût du calcul des interactions.
  */
 void univers::initialise_cellules() {
     int nb_total = 1;
@@ -313,9 +325,13 @@ void univers::initialise_cellules() {
 
             for (int dx = -1; dx <= 1; ++dx) {
                 int nix = ix + dx;
+
                 if (nix >= 0 && nix < ncd[0]) {
                     int idx_voisin = indice_cellule(nix);
-                    cellules[idx].ajoute_voisin(&cellules[idx_voisin]);
+
+                    if (idx_voisin >= idx) {
+                        cellules[idx].ajoute_voisin(&cellules[idx_voisin]);
+                    }
                 }
             }
         }
@@ -333,8 +349,12 @@ void univers::initialise_cellules() {
 
                         if (nix >= 0 && nix < ncd[0] &&
                             niy >= 0 && niy < ncd[1]) {
+
                             int idx_voisin = indice_cellule(nix, niy);
-                            cellules[idx].ajoute_voisin(&cellules[idx_voisin]);
+
+                            if (idx_voisin >= idx) {
+                                cellules[idx].ajoute_voisin(&cellules[idx_voisin]);
+                            }
                         }
                     }
                 }
@@ -358,8 +378,12 @@ void univers::initialise_cellules() {
                                 if (nix >= 0 && nix < ncd[0] &&
                                     niy >= 0 && niy < ncd[1] &&
                                     niz >= 0 && niz < ncd[2]) {
+
                                     int idx_voisin = indice_cellule(nix, niy, niz);
-                                    cellules[idx].ajoute_voisin(&cellules[idx_voisin]);
+
+                                    if (idx_voisin >= idx) {
+                                        cellules[idx].ajoute_voisin(&cellules[idx_voisin]);
+                                    }
                                 }
                             }
                         }
@@ -369,7 +393,6 @@ void univers::initialise_cellules() {
         }
     }
 }
-
 /**
  * @brief Définit les conditions aux limites sur chaque face du domaine.
  *
@@ -505,7 +528,7 @@ bool univers::applique_conditions_limites_particule(particule* p){
 void univers::calcule_forces(){
     // Remise à zéro des forces
     for (particule* p : particules) {
-        p->setForce(vecteur());
+        p->setForce(vecteur{});
     }
 
     const double r_cut2 = r_cut * r_cut;
@@ -517,11 +540,6 @@ void univers::calcule_forces(){
         const auto& parts = c.getParticules();
 
         for (const cellule* v : c.getVoisins()){
-            // Évite de traiter deux fois la même paire de cellules
-            if (v < &c){
-                continue;
-            }
-
             if (v == &c){
                 // Interactions internes à une même cellule
                 for (size_t i = 0; i < parts.size(); ++i) {
@@ -533,11 +551,8 @@ void univers::calcule_forces(){
                         const vecteur& posi = pi->getPosition();
                         const vecteur& posj = pj->getPosition();
 
-                        double dx = posj.getX() - posi.getX();
-                        double dy = posj.getY() - posi.getY();
-                        double dz = posj.getZ() - posi.getZ();
-
-                        double dist2 = dx * dx + dy * dy + dz * dz + 1e-12;
+                        vecteur rij = posj - posi;
+                        double dist2 = rij.norme2() + 1e-12;
 
                         if (dist2 > r_cut2) continue;
 
@@ -546,8 +561,13 @@ void univers::calcule_forces(){
 
                         double coeff_force = coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
 
-                        pi->ajouterForce(dx * coeff_force, dy * coeff_force, dz * coeff_force);
-                        pj->ajouterForce(-dx * coeff_force, -dy * coeff_force, -dz * coeff_force);
+                        pi->ajouterForce(rij.getX() * coeff_force,
+                                        rij.getY() * coeff_force,
+                                        rij.getZ() * coeff_force);
+
+                        pj->ajouterForce(-rij.getX() * coeff_force,
+                                        -rij.getY() * coeff_force,
+                                        -rij.getZ() * coeff_force);
                     }
                 }
             }
@@ -561,11 +581,8 @@ void univers::calcule_forces(){
                     for (particule* pj : vois) {
                         const vecteur& posj = pj->getPosition();
 
-                        double dx = posj.getX() - posi.getX();
-                        double dy = posj.getY() - posi.getY();
-                        double dz = posj.getZ() - posi.getZ();
-
-                        double dist2 = dx * dx + dy * dy + dz * dz + 1e-12;
+                        vecteur rij = posj - posi;
+                        double dist2 = rij.norme2() + 1e-12;
 
                         if (dist2 > r_cut2) continue;
 
@@ -574,8 +591,12 @@ void univers::calcule_forces(){
 
                         double coeff_force = coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
 
-                        pi->ajouterForce(dx * coeff_force, dy * coeff_force, dz * coeff_force);
-                        pj->ajouterForce(-dx * coeff_force, -dy * coeff_force, -dz * coeff_force);
+                        pi->ajouterForce(rij.getX() * coeff_force,
+                                        rij.getY() * coeff_force,
+                                        rij.getZ() * coeff_force);
+                        pj->ajouterForce(-rij.getX() * coeff_force,
+                                        -rij.getY() * coeff_force,
+                                        -rij.getZ() * coeff_force);
                     }
                 }
             }

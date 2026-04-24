@@ -30,17 +30,12 @@ private:
 
 public:
     /**
-     * @brief Constructeur par défaut.
-     */
-    vecteur();
-
-    /**
      * @brief Constructeur avec initialisation des composantes.
      * @param x_val Valeur selon x.
      * @param y_val Valeur selon y.
      * @param z_val Valeur selon z.
      */
-    vecteur(double x_val, double y_val, double z_val);
+    vecteur(double x_val = 0.0, double y_val = 0.0, double z_val = 0.0);
 
     /**
      * @brief Calcule la norme euclidienne du vecteur.
@@ -145,6 +140,21 @@ public:
      * @return Référence constante vers la composante demandée.
      */
     const double& operator[](int index) const;
+
+    /**
+ * @brief Constructeur de copie par défaut.
+ */
+    vecteur(const vecteur&) = default;
+
+    /**
+    * @brief Opérateur d'affectation par défaut.
+    */
+    vecteur& operator=(const vecteur&) = default;
+
+    /**
+    * @brief Destructeur par défaut.
+    */
+    ~vecteur() = default;
 };
 
 /**

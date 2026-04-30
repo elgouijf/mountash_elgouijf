@@ -54,4 +54,7 @@ void ecrire_fichier_series_json(int nb_frames, double dt, int save_every,
                                 const std::string& dossier,
                                 const std::string& extension);
 
+
+
+void sauvegarde_cadre_vtk(const std::vector<double>& Lds, const std::string& dossier);
 #endif

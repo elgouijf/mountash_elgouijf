@@ -192,3 +192,24 @@ void ecrire_fichier_series_json(int nb_frames, double dt, int save_every,
     file << "  ]\n";
     file << "}\n";
 }
+
+void sauvegarde_cadre_vtk(const std::vector<double>& Lds, const std::string& dossier) {
+    std::ofstream file(dossier + "/cadre.vtk");
+
+    file << "# vtk DataFile Version 3.0\n";
+    file << "Cadre domaine\n";
+    file << "ASCII\n";
+    file << "DATASET POLYDATA\n";
+
+    file << "POINTS 4 float\n";
+    file << "0 0 0\n";
+    file << Lds[0] << " 0 0\n";
+    file << Lds[0] << " " << Lds[1] << " 0\n";
+    file << "0 " << Lds[1] << " 0\n";
+
+    file << "LINES 4 12\n";
+    file << "2 0 1\n";
+    file << "2 1 2\n";
+    file << "2 2 3\n";
+    file << "2 3 0\n";
+}

@@ -1,17 +1,12 @@
 /**
  * @file simu_tp6.cxx
- * @brief Simulation 3D d'une collision entre un cube et un pavé de particules.
+ * @brief Simulation 2D d'une collision entre une boule et un pavé de particules.
  *
  * Ce programme :
- * - initialise deux ensembles de particules en 3D,
+ * - initialise une boule et un pavé de particules en 2D,
  * - simule leur interaction via un potentiel de Lennard-Jones,
- * - sauvegarde les résultats soit en format texte, soit en format VTK,
- * - permet une visualisation avec Python ou ParaView.
- *
- * Modes disponibles :
- * - 't' : export texte + visualisation Python
- * - 'v' : export VTK + visualisation ParaView
- * - 'x' : export VTU XML + visualisation ParaView
+ * - ajoute un champ gravitationnel,
+ * - sauvegarde les résultats soit en format texte, VTK legacy ou VTU XML.
  */
 
 #include <iostream>
@@ -29,14 +24,6 @@
 
 using namespace std;
 
-/**
- * @brief Recherche le script Python de visualisation 2D.
- *
- * Plusieurs chemins possibles sont testés pour permettre
- * une exécution depuis différents répertoires.
- *
- * @return Chemin vers le script si trouvé, chaîne vide sinon.
- */
 std::string trouver_script_python() {
     std::vector<std::string> candidats = {
         std::string(PROJECT_SOURCE_DIR) + "/src/python_plot/plot_collision.py",
@@ -49,34 +36,13 @@ std::string trouver_script_python() {
     return "";
 }
 
-/**
- * @brief Convertit une string en ConditionLimite.
- *
- * @param s "r" pour Reflexive, "a" pour Absorbante, "p" pour Periodique.
- * @return La ConditionLimite correspondante, Reflexive par défaut.
- */
 ConditionLimite convert_string_to_Cdl(string s) {
     if (s == "a") return ConditionLimite::Absorbante;
     if (s == "p") return ConditionLimite::Periodique;
     return ConditionLimite::Reflexive;
 }
 
-/**
- * @brief Programme principal de simulation 3D.
- *
- * Étapes :
- * - choix du mode de sortie,
- * - choix des conditions aux limites,
- * - initialisation des particules en 3D,
- * - simulation temporelle avec Störmer-Verlet,
- * - sauvegarde des frames,
- * - visualisation avec Python ou ParaView.
- *
- * @return EXIT_SUCCESS si la simulation s'exécute correctement,
- *         EXIT_FAILURE sinon.
- */
 int main() {
-
     std::string mode;
     std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
     std::cin >> mode;
@@ -86,89 +52,96 @@ int main() {
         return EXIT_FAILURE;
     }
 
-  
     int dim = 2;
 
-    cout << "Conditions aux limites (r/a/p) pour xmin xmax ymin ymax zmin zmax : ";
+    double sigma   = 1.0;
+    double epsilon = 1.0;
+    double mass_pave    = 2.0;
+    double mass_boule   = 1.0;
+    double dt      = 0.0001;
+    double rcut    = 2.5 * sigma;
+    double G       = -12.0;
+
+    std::vector<double> Lds = {250.0, 180.0};
+    std::vector<particule*> particules;
+
+    double dist_entre_particules = std::pow(2.0, 1.0 / 6.0) / sigma;
+
+    // Debug : durée courte. Pour le rendu final, mettre 29.5.
+    double duration = 30.0;
+    int num_frames = static_cast<int>(duration / dt);
+
+    vecteur v2(0.0, 0.0, 0.0);
+    vecteur v1(0.0, -10.0, 0.0);
+
+    cout << "Conditions aux limites (r/a/p) pour xmin xmax ymin ymax : ";
     vector<string> liste_condition;
-    for (int _ = 0; _ < 2*dim; _++) {
+    for (int i = 0; i < 2 * dim; i++) {
         string condition_l;
         cin >> condition_l;
         liste_condition.push_back(condition_l);
     }
 
-    // Caractéristiques de l'univers
-    double sigma   = 1.0;
-    double epsilon = 5.0;
-    double mass    = 1.0;
-    double dt      = 0.001;
-    double rcut    = 2.5 * sigma;
-
-
-    std::vector<double> Lds = {250.0, 150.0, 150.0};
-
-    double dist_entre_particules = pow(2, 1.0/6.0) / sigma;
-    std::vector<particule*> particules;
-
-
-    double duration = 8.5;
-    int num_frames  = duration / dt;
-
-
-    vecteur v2;
-    vecteur v1(0.0, 0.0, -10.0);
-
-
-    int N1x = 0; 
-    int N1y = 0; 
-    int N1z = 0;
-    
-    int N2x = 10;
-    int N2y = 4;
-    int N2z = 2;
-
-    // Création de l'univers
-    univers uni(particules, Lds, rcut, dim, epsilon, sigma,9.81);
+    /* ++++++++++++++++++++ Potentiel mur ++++++++++++++++++ */
+    bool utiliser_potentiel_mur = true;
+    univers uni(particules, Lds, rcut, dim, epsilon, sigma, G, utiliser_potentiel_mur);
 
     uni.setConditionsLimites(
         convert_string_to_Cdl(liste_condition[0]),
         convert_string_to_Cdl(liste_condition[1]),
         convert_string_to_Cdl(liste_condition[2]),
         convert_string_to_Cdl(liste_condition[3]),
-        convert_string_to_Cdl(liste_condition[4]),
-        convert_string_to_Cdl(liste_condition[5])
+        ConditionLimite::Reflexive, // peut importe car on est en 2D
+        ConditionLimite::Reflexive
     );
 
+    // Pour debugger da'abord la réflexion géométrique :
+    //uni.setUtiliserPotentielMur(false);
+
     int id = 0;
-    double largeur_carre = (N1x-1) * dist_entre_particules;
-    double largeur_rect  = (N2x-1) * dist_entre_particules;
 
-    int save_every = 100;
-    
-    // Carré supérieur (N1x * N1y * N1z particules)
-    int N1 = N1x * N1y * N1z;
-    for (int i = 0; i < N1; ++i) {
-        int ix = i % N1x;
-        int iy = (i / N1x) % N1y;
-        int iz = i / (N1x * N1y);
-        double x = 20.0 + (largeur_rect - largeur_carre) / 2.0
-                + ix * dist_entre_particules + dist_entre_particules / 2.0;
-        double y = 20.0 + iy * dist_entre_particules + dist_entre_particules / 2.0;
-        double z = 90.0 + iz * dist_entre_particules + dist_entre_particules / 2.0;
-        uni.ajoute_particule(new particule(id++, 1, mass, vecteur(x, y, z), v1));
+    // Petites tailles pour debug
+    int N2x = 20;
+    int N2y = 5;
+
+    double x0_pave = 80.0;
+    double y0_pave = 5.0;
+
+    // Pavé inférieur
+    int N2 = N2x * N2y;
+    for (int j = 0; j < N2y; ++j) {
+        for (int i = 0; i < N2x; ++i) {
+            double x = x0_pave + i * dist_entre_particules;
+            double y = y0_pave + j * dist_entre_particules;
+
+            uni.ajoute_particule(
+                new particule(id++, 2, mass_pave, vecteur(x, y, 0.0), v2)
+            );
+        }
     }
 
-    // Rectangle inférieur (N2x * N2y * N2z particules)
-    int N2 = N2x * N2y * N2z;
-    for (int i = 0; i < N2; ++i) {
-        int ix = i % N2x;
-        int iy = (i / N2x) % N2y;
-        int iz = i / (N2x * N2y);
-        double x = 20.0 + ix * dist_entre_particules + dist_entre_particules / 2.0;
-        double y = 20.0 + iy * dist_entre_particules + dist_entre_particules / 2.0;
-        double z = 20.0 + iz * dist_entre_particules + dist_entre_particules / 2.0;
-        uni.ajoute_particule(new particule(id++, 2, mass, vecteur(x, y, z), v2));
+    // Boule supérieure
+    double cx = x0_pave + 0.5 * (N2x - 1) * dist_entre_particules;
+    double cy = 100.0;
+    double rayon_boule = 0.0;
+
+    int N1 = 0;
+    for (double y = cy - rayon_boule; y <= cy + rayon_boule; y += dist_entre_particules) {
+        for (double x = cx - rayon_boule; x <= cx + rayon_boule; x += dist_entre_particules) {
+            double dx = x - cx;
+            double dy = y - cy;
+
+            if (dx * dx + dy * dy <= rayon_boule * rayon_boule) {
+                uni.ajoute_particule(
+                    new particule(id++, 1, mass_boule, vecteur(x, y, 0.0), v1)
+                );
+                N1++;
+            }
+        }
     }
+
+    std::cout << "Particules boule : " << N1 << "\n";
+    std::cout << "Particules pave  : " << N2 << "\n";
 
     std::ofstream file;
     if (mode == "t") {
@@ -179,51 +152,61 @@ int main() {
             return EXIT_FAILURE;
         }
     }
+
     string dossier_vtk;
     string dossier_vtu;
 
     if (mode == "v") {
-        auto now = std::chrono::system_clock::now();
-        auto t = std::chrono::system_clock::to_time_t(now);
-        std::stringstream ss;
-        ss << std::put_time(std::localtime(&t), "%Y%m%d_%H%M%S"); // On se sert de ça pour éviter l'écrasement des fichiers
-                                                                 // En donnnat à chaque repo le temps
-
         dossier_vtk = "vtk_frames";
-
         std::filesystem::create_directories(dossier_vtk);
     }
+
     if (mode == "x") {
-        auto now = std::chrono::system_clock::now();
-        auto t = std::chrono::system_clock::to_time_t(now);
-        std::stringstream ss;
-        ss << std::put_time(std::localtime(&t), "%Y%m%d_%H%M%S");
-
-        dossier_vtu = "vtu_frames" ;
-
+        dossier_vtu = "vtu_frames";
         std::filesystem::create_directories(dossier_vtu);
     }
+
+    int save_every = 2000;
     int frame_id = 0;
     auto start = std::chrono::high_resolution_clock::now();
 
+
+    //uni.calcule_forces();
+    // Initialisation des forces
     uni.calcule_forces();
+
+    if (utiliser_potentiel_mur) {
+        uni.applique_potentiel_mur();
+    }
+
+    uni.applique_gravite();
+
+    bool activer_limiteur = false; // msut be true for larger systems
 
     for (int frame = 0; frame < num_frames; ++frame) {
         uni.evolue_particules(dt);
 
         if (frame % 1000 == 0) {
             std::cout << "Frame " << frame << "/" << num_frames
-                      << "  particules : " << uni.getNumParticules() << "\n";
-            //uni.limite_vitesses();
+                    << "  particules : " << uni.getNumParticules() << "\n";
+
+            if (activer_limiteur && frame > 0) {
+                uni.limite_vitesses(N1, N2);
+            }
         }
 
         if (frame % save_every == 0) {
-            if      (mode == "t") sauvegarde_frame_txt(file, uni, frame_id);
-            else if (mode == "v") sauvegarde_frame_vtk(uni, frame_id, dossier_vtk);
-            else if (mode == "x") sauvegarde_frame_vtu(uni, frame_id, dossier_vtu);
+            if (mode == "t") {
+                sauvegarde_frame_txt(file, uni, frame_id);
+            } else if (mode == "v") {
+                sauvegarde_frame_vtk(uni, frame_id, dossier_vtk);
+            } else if (mode == "x") {
+                sauvegarde_frame_vtu(uni, frame_id, dossier_vtu);
+            }
             frame_id++;
         }
     }
+
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
@@ -231,11 +214,13 @@ int main() {
 
     if (mode == "t") {
         file.close();
+
         std::string script_python = trouver_script_python();
         if (script_python.empty()) {
             std::cerr << "Impossible de trouver src/plot_collision.py\n";
             return EXIT_FAILURE;
         }
+
         std::string commande_python = "python3 " + script_python;
         int code_python = system(commande_python.c_str());
         if (code_python != 0) {
@@ -246,12 +231,12 @@ int main() {
 
     if (mode == "v") {
         ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtk, "vtk");
-        std::cout << "Fichier de series genere : vtk_frames/animation.vtk.series\n";
+        std::cout << "Fichier de series genere : " << dossier_vtk << "/animation.vtk.series\n";
     }
 
     if (mode == "x") {
         ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtu, "vtu");
-        std::cout << "Fichier de series genere : vtu_frames/animation.vtk.series\n";
+        std::cout << "Fichier de series genere : " << dossier_vtu << "/animation.vtk.series\n";
     }
 
     return EXIT_SUCCESS;

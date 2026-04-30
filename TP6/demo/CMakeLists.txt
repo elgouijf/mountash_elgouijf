@@ -2,6 +2,10 @@
 add_executable(simu_tp4 simu_tp4.cxx)
 target_link_libraries(simu_tp4 particules)
 
+# Simulation TP6
+add_executable(simu_tp6 simu_tp6.cxx)
+target_link_libraries(simu_tp6 particules)
+
 # Programme 3D
 add_executable(test_3d test_3d.cxx)
 target_link_libraries(test_3d particules)

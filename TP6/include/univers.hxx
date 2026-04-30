@@ -84,26 +84,37 @@ class univers {
 
         ConditionLimite condl_zmax;
 
+        bool utiliser_potentiel_mur;
+
     public:
         /**
          * @brief Constructeur par défaut.
          */
         univers();
 
-        univers(std::vector<particule*>& v, std::vector<double> Lds, double r_cut, int dim, double eps, double sigma);
+        univers(std::vector<particule*>& v,
+                std::vector<double> Lds,
+                double r_cut,
+                int dim,
+                double eps,
+                double sigma);
 
-        /**
-         * @brief Constructeur paramétré.
-         * @param v Vecteur initial de particules.
-         * @param Lds Tailles du domaine.
-         * @param r_cut Distance de coupure.
-         * @param dim Dimension de l'univers.
-         * @param eps Paramètre epsilon du potentiel de Lennard-Jones.
-         * @param sigma Paramètre sigma du potentiel de Lennard-Jones.
-         */
-        univers(std::vector<particule*>& v, std::vector<double> Lds, double r_cut, int dim, double eps, double sigma,double G);
+        univers(std::vector<particule*>& v,
+                std::vector<double> Lds,
+                double r_cut,
+                int dim,
+                double eps,
+                double sigma,
+                double G);
 
-        
+        univers(std::vector<particule*>& v,
+                std::vector<double> Lds,
+                double r_cut,
+                int dim,
+                double eps,
+                double sigma,
+                double G,
+                bool utiliser_potentiel_mur);
 
         /**
          * @brief Destructeur.
@@ -232,9 +243,15 @@ class univers {
 
         bool applique_conditions_limites_particule(particule* p);
 
-        double calcule_force_mur(double r);
+        double calcule_force_mur(double r) const;
 
         void limite_vitesses(int N1,int N2);
+
+        void setUtiliserPotentielMur(bool actif);
+
+        void applique_gravite();
+
+        void applique_potentiel_mur();
 };
 
 /**

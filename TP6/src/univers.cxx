@@ -37,6 +37,8 @@ univers::univers(){
     this->condl_ymax = ConditionLimite::Reflexive;
     this->condl_zmin = ConditionLimite::Reflexive;
     this->condl_zmax = ConditionLimite::Reflexive; 
+    this->G = 0.0;
+    this->utiliser_potentiel_mur = false;
 
     initialise_cellules();
 }
@@ -54,69 +56,30 @@ univers::univers(){
  * @param eps Paramètre epsilon du potentiel de Lennard-Jones.
  * @param sigma Paramètre sigma du potentiel de Lennard-Jones.
  */
-univers::univers(std::vector<particule*>& v,
-    std::vector<double> Lds,
-    double r_cut,
-    int dim,
-    double eps,
-    double sigma
-){
-    this->num_particules = 0;
 
-    this->r_cut = r_cut;
-    this->eps = eps;
-    this->sigma = sigma;
-
-    if (dim < 1 || dim > 3) {
-        std::cerr << "Dimension must be between 1 and 3. Setting to 3." << std::endl;
-        this->dim = 3;
-    } else {
-        this->dim = dim;
-    }
-
-    if (Lds.size() != this->dim) {
-        std::cerr << "Size of Lds must match the dimension. Setting to default values." << std::endl;
-        this->Lds = std::vector<double>(this->dim, 10.0);
-    } else {
-        this->Lds = Lds;
-    }
-
-    this->ncd = std::vector<int>(this->dim);
-    for (int i = 0; i < this->dim; ++i) {
-        this->ncd[i] = static_cast<int>(this->Lds[i] / r_cut);
-        if (this->ncd[i] < 1) this->ncd[i] = 1;
-    }
-
-
-    this->condl_xmin = ConditionLimite::Reflexive;
-    this->condl_xmax = ConditionLimite::Reflexive;
-    this->condl_ymin = ConditionLimite::Reflexive;
-    this->condl_ymax = ConditionLimite::Reflexive;
-    this->condl_zmin = ConditionLimite::Reflexive;
-    this->condl_zmax = ConditionLimite::Reflexive; 
-    initialise_cellules();
-
-    this->particules.reserve(v.size());
-    for (particule* p : v) {
-        ajoute_particule(p);
-    }
-
-}
 
 univers::univers(std::vector<particule*>& v,
-    std::vector<double> Lds,
-    double r_cut,
-    int dim,
-    double eps,
-    double sigma,
-    double G
-){
+                 std::vector<double> Lds,
+                 double r_cut,
+                 int dim,
+                 double eps,
+                 double sigma,
+                 double G,
+                 bool utiliser_potentiel_mur)
+{
     this->num_particules = 0;
-
     this->r_cut = r_cut;
     this->eps = eps;
     this->sigma = sigma;
     this->G = G;
+    this->utiliser_potentiel_mur = utiliser_potentiel_mur;
+
+    this->condl_xmin = ConditionLimite::Reflexive;
+    this->condl_xmax = ConditionLimite::Reflexive;
+    this->condl_ymin = ConditionLimite::Reflexive;
+    this->condl_ymax = ConditionLimite::Reflexive;
+    this->condl_zmin = ConditionLimite::Reflexive;
+    this->condl_zmax = ConditionLimite::Reflexive;
 
     if (dim < 1 || dim > 3) {
         std::cerr << "Dimension must be between 1 and 3. Setting to 3." << std::endl;
@@ -125,7 +88,7 @@ univers::univers(std::vector<particule*>& v,
         this->dim = dim;
     }
 
-    if (Lds.size() != this->dim) {
+    if (Lds.size() != static_cast<size_t>(this->dim)) {
         std::cerr << "Size of Lds must match the dimension. Setting to default values." << std::endl;
         this->Lds = std::vector<double>(this->dim, 10.0);
     } else {
@@ -138,19 +101,33 @@ univers::univers(std::vector<particule*>& v,
         if (this->ncd[i] < 1) this->ncd[i] = 1;
     }
 
-
-    this->condl_xmin = ConditionLimite::Reflexive;
-    this->condl_xmax = ConditionLimite::Reflexive;
-    this->condl_ymin = ConditionLimite::Reflexive;
-    this->condl_ymax = ConditionLimite::Reflexive;
-    this->condl_zmin = ConditionLimite::Reflexive;
-    this->condl_zmax = ConditionLimite::Reflexive; 
     initialise_cellules();
 
     this->particules.reserve(v.size());
     for (particule* p : v) {
         ajoute_particule(p);
     }
+}
+
+univers::univers(std::vector<particule*>& v,
+                 std::vector<double> Lds,
+                 double r_cut,
+                 int dim,
+                 double eps,
+                 double sigma)
+    : univers(v, Lds, r_cut, dim, eps, sigma, 0.0, false)
+{
+}
+
+univers::univers(std::vector<particule*>& v,
+                 std::vector<double> Lds,
+                 double r_cut,
+                 int dim,
+                 double eps,
+                 double sigma,
+                 double G)
+    : univers(v, Lds, r_cut, dim, eps, sigma, G, false)
+{
 }
 
 /**
@@ -165,6 +142,10 @@ univers::~univers() {
 
 const std::vector<particule*>& univers::getParticules() const {
     return particules;
+}
+
+void univers::setUtiliserPotentielMur(bool actif) {
+    utiliser_potentiel_mur = actif;
 }
 
 int univers::getNumParticules() const {
@@ -240,29 +221,31 @@ void univers::ajoute_particule(particule* p) {
  */
 void univers::evolue_particules(double dt) {
 
+    // 1. update positions
     for (particule* p : particules) {
         p->avance_position_verlet(dt);
     }
 
+    // 2. rebuild cells
     place_particules_dans_cellules();
+
+    // 3. recompute forces
     calcule_forces();
 
-    for (int i = particules.size() - 1; i > -1  ; i--) {
-        if (!applique_conditions_limites_particule(particules[i])) {
-            std :: cout << "inbnb";
-            delete particules[i];
-            particules.erase(particules.begin() + i);
-            num_particules--;
-        }
+    if (utiliser_potentiel_mur) {
+        applique_potentiel_mur();
     }
 
+    applique_gravite();
+
+    // 4. update velocities
     for (particule* p : particules) {
-        double Fg = -G * p->getMasse();
-        p->ajouterForce(0, 0, Fg);
         p->avance_vitesse_verlet(dt);
     }
-}
 
+    // CONDITIONS LIMITES EN DERNIER
+    applique_conditions_limites();
+}
 
 double univers::energie_cinetique() const {
     double Ec = 0.0;
@@ -276,14 +259,19 @@ double univers::energie_cinetique() const {
     return Ec;
 }
 
-double univers::calcule_force_mur(double r){
-    r = std::max(r, 1e-6); // Pour la stabilité mathématique
+double univers::calcule_force_mur(double r) const {
+    r = std::max(r, 1e-12);
 
-    double sigma_r = sigma / (2.0 * r);
-    double sigma_r_6 = sigma_r*sigma_r*sigma_r*sigma_r*sigma_r*sigma_r;
+    const double s  = sigma / (2.0 * r);
+    const double s2 = s * s;
+    const double s6 = s2 * s2 * s2;
 
-    return -24.0 * eps * (1.0 / (2.0*r)) * sigma_r_6 * (1.0 - 2.0*sigma_r_6);
+    // Force associated with:
+    // just taking of the 1/2 so i can check something
+    return -24.0 * eps * (1.0 / 2*r) * s6 * (1.0 - 2.0 * s6);
 }
+
+
 /**
  * @brief Vide toutes les cellules de la grille.
  *
@@ -493,6 +481,23 @@ void univers::setConditionsLimites(ConditionLimite cond_xmin, ConditionLimite co
     this->condl_zmax = cond_zmax;
 }
 
+
+void univers::applique_conditions_limites() {
+    std::vector<particule*> survivantes;
+    survivantes.reserve(particules.size());
+
+    for (particule* p : particules) {
+        if (applique_conditions_limites_particule(p)) {
+            survivantes.push_back(p);
+        } else {
+            delete p;
+        }
+    }
+
+    particules = survivantes;
+    num_particules = static_cast<int>(particules.size());
+}
+
 /**
  * @brief Applique les conditions aux limites à une particule.
  *
@@ -500,105 +505,143 @@ void univers::setConditionsLimites(ConditionLimite cond_xmin, ConditionLimite co
  * @return false si la particule doit être absorbée, true sinon.
  */
 
-bool univers::applique_conditions_limites_particule(particule* p){
+bool univers::applique_conditions_limites_particule(particule* p) {
     vecteur pos = p->getPosition();
     vecteur vit = p->getVitesse();
-    double r_cut_mur = pow(2.0, 1.0/6.0) * sigma;
 
+    bool garder = true;
 
-    // Conditions aux limites, bornes négatives
+    double Lx = Lds[0];
+    double Ly = (dim >= 2) ? Lds[1] : 0.0;
+    double Lz = (dim == 3) ? Lds[2] : 0.0;
 
-    // x
-    if (condl_xmin == ConditionLimite::Reflexive && pos.getX() < r_cut_mur) {
-            double Fi = calcule_force_mur(std::abs(pos.getX()));
-            p->ajouterForce(Fi,0,0);
-    } else if (pos.getX() < 0.0) {
-        if (condl_xmin == ConditionLimite::Absorbante) {
-            return false;
-        } else if (condl_xmin == ConditionLimite::Periodique) {
-            pos.setX(pos.getX() + Lds[0]);
+    // =====================
+    // Bord xmin : x = 0
+    // =====================
+    if (pos.getX() < 0.0) {
+        if (condl_xmin == ConditionLimite::Reflexive) {
+            if (!utiliser_potentiel_mur) {
+                pos.setX(-pos.getX());
+                vit.setX(-vit.getX());
+            }
+        }
+        else if (condl_xmin == ConditionLimite::Periodique) {
+            pos.setX(pos.getX() + Lx);
+        }
+        else if (condl_xmin == ConditionLimite::Absorbante) {
+            garder = false;
         }
     }
 
-    // y
-    if (condl_ymin == ConditionLimite::Reflexive && pos.getY() < r_cut_mur) {
-            double Fi = calcule_force_mur(std::abs(pos.getY()));
-            p->ajouterForce(0,Fi,0);
-    } else if (pos.getY() < 0.0) {
-        if (condl_ymin == ConditionLimite::Absorbante) {
-            return false;
-        } else if (condl_ymin == ConditionLimite::Periodique) {
-            pos.setY(pos.getY() + Lds[1]);
+    // =====================
+    // Bord xmax : x = Lx
+    // =====================
+    if (pos.getX() > Lx) {
+        if (condl_xmax == ConditionLimite::Reflexive) {
+            if (!utiliser_potentiel_mur) {
+                pos.setX(2.0 * Lx - pos.getX());
+                vit.setX(-vit.getX());
+            }
+        }
+        else if (condl_xmax == ConditionLimite::Periodique) {
+            pos.setX(pos.getX() - Lx);
+        }
+        else if (condl_xmax == ConditionLimite::Absorbante) {
+            garder = false;
         }
     }
 
-
-    // z
-    if (condl_zmin == ConditionLimite::Reflexive && pos.getZ() < r_cut_mur) {
-            double Fi = calcule_force_mur(std::abs(pos.getZ()));
-            p->ajouterForce(0,0,Fi);
-    } else if (pos.getZ() < 0.0) {
-        if (condl_zmin == ConditionLimite::Absorbante) {
-            return false;
-        } else if (condl_zmin == ConditionLimite::Periodique) {
-            pos.setZ(pos.getZ() + Lds[2]);
+    // =====================
+    // Bord ymin : y = 0
+    // =====================
+    if (pos.getY() < 0.0) {
+        if (condl_ymin == ConditionLimite::Reflexive) {
+            if (!utiliser_potentiel_mur) {
+                pos.setY(-pos.getY());
+                vit.setY(-vit.getY());
+            }
+        }
+        else if (condl_ymin == ConditionLimite::Periodique) {
+            pos.setY(pos.getY() + Ly);
+        }
+        else if (condl_ymin == ConditionLimite::Absorbante) {
+            garder = false;
         }
     }
 
-
-
-    // Conditions aux limites, bornes positives
-    // x
-    if (condl_xmax == ConditionLimite::Reflexive && pos.getX() > Lds[0] - r_cut_mur) {
-            double Fi = calcule_force_mur(abs(Lds[0] -pos.getX()));
-            p->ajouterForce(-Fi,0,0);
-    } else if (pos.getX() > Lds[0]) {
-        if (condl_xmax == ConditionLimite::Absorbante) {
-            return false;
-        } else if (condl_xmax == ConditionLimite::Periodique) {
-            pos.setX(pos.getX() - Lds[0]);
+    // =====================
+    // Bord ymax : y = Ly
+    // =====================
+    if (pos.getY() > Ly) {
+        if (condl_ymax == ConditionLimite::Reflexive) {
+            if (!utiliser_potentiel_mur) {
+                pos.setY(2.0 * Ly - pos.getY());
+                vit.setY(-vit.getY());
+            }
+        }
+        else if (condl_ymax == ConditionLimite::Periodique) {
+            pos.setY(pos.getY() - Ly);
+        }
+        else if (condl_ymax == ConditionLimite::Absorbante) {
+            garder = false;
         }
     }
 
-    // y
-    if (condl_ymax == ConditionLimite::Reflexive && pos.getY() > Lds[1] - r_cut_mur) {
-            double Fi = calcule_force_mur(abs(Lds[1] -pos.getY()));
-            p->ajouterForce(0,-Fi,0);
-    } else if (pos.getY() > Lds[1]) {
-        if (condl_ymax == ConditionLimite::Absorbante) {
-            return false;
-        } else if (condl_ymax == ConditionLimite::Periodique) {
-            pos.setY(pos.getY() - Lds[1]);
+    // =====================
+    // Bord zmin : z = 0
+    // seulement si dim == 3
+    // =====================
+    if (dim == 3 && pos.getZ() < 0.0) {
+        if (condl_zmin == ConditionLimite::Reflexive) {
+            if (!utiliser_potentiel_mur) {
+                pos.setZ(-pos.getZ());
+                vit.setZ(-vit.getZ());
+            }
+        }
+        else if (condl_zmin == ConditionLimite::Periodique) {
+            pos.setZ(pos.getZ() + Lz);
+        }
+        else if (condl_zmin == ConditionLimite::Absorbante) {
+            garder = false;
         }
     }
 
-    // z
-    if (condl_zmax == ConditionLimite::Reflexive && pos.getZ() > Lds[2] - r_cut_mur) {
-            double Fi = calcule_force_mur(abs(Lds[2] -pos.getZ()));
-            p->ajouterForce(0,0,-Fi);
-    } else if (pos.getZ() > Lds[2]) {
-        if (condl_zmax == ConditionLimite::Absorbante) {
-            return false;
-        } else if (condl_zmax == ConditionLimite::Periodique) {
-            pos.setZ(pos.getZ() - Lds[2]);
+    // =====================
+    // Bord zmax : z = Lz
+    // seulement si dim == 3
+    // =====================
+    if (dim == 3 && pos.getZ() > Lz) {
+        if (condl_zmax == ConditionLimite::Reflexive) {
+            if (!utiliser_potentiel_mur) {
+                pos.setZ(2.0 * Lz - pos.getZ());
+                vit.setZ(-vit.getZ());
+            }
+        }
+        else if (condl_zmax == ConditionLimite::Periodique) {
+            pos.setZ(pos.getZ() - Lz);
+        }
+        else if (condl_zmax == ConditionLimite::Absorbante) {
+            garder = false;
         }
     }
 
-    // Mettre à jour la position et la vitesse de la particule
     p->setPosition(pos);
     p->setVitesse(vit);
 
-    return true;
-
+    return garder;
 }
 
-void univers::limite_vitesses(int N1, int N2){
-    double Ec_D = 0.005*(N1+N2);
+void univers::limite_vitesses(int N1, int N2) {
+    double Ec_D = 0.005 * (N1 + N2);
     double Ec = energie_cinetique();
-    double beta = sqrt(Ec_D/Ec);
-    for (particule *p : particules){
+
+    if (Ec <= 1e-12) return;
+
+    double beta = std::sqrt(Ec_D / Ec);
+
+    for (particule* p : particules) {
         vecteur v = p->getVitesse();
-        p->setVitesse(v*beta);
+        p->setVitesse(v * beta);
     }
 }
 
@@ -693,6 +736,82 @@ void univers::calcule_forces(){
                     }
                 }
             }
+        }
+    }
+}
+
+void univers::applique_potentiel_mur() {
+    const double r_cut_mur = 0.5 * std::pow(2.0, 1.0 / 6.0) * sigma;
+    const double eps_pos   = 1e-6; // numerical guard for force evaluation only
+
+    for (particule* p : particules) {
+        const vecteur& pos = p->getPosition();
+
+        // Bottom wall: y = 0
+        if (dim >= 2 && condl_ymin == ConditionLimite::Reflexive) {
+            const double r = std::max(pos.getY(), eps_pos);
+            if (r < r_cut_mur) {
+                p->ajouterForce(0.0, +calcule_force_mur(r), 0.0);
+            }
+        }
+
+        // Top wall: y = Ly
+        if (dim >= 2 && condl_ymax == ConditionLimite::Reflexive) {
+            const double r = std::max(Lds[1] - pos.getY(), eps_pos);
+            if (r < r_cut_mur) {
+                p->ajouterForce(0.0, -calcule_force_mur(r), 0.0);
+            }
+        }
+
+        // Left wall: x = 0
+        if (condl_xmin == ConditionLimite::Reflexive) {
+            const double r = std::max(pos.getX(), eps_pos);
+            if (r < r_cut_mur) {
+                p->ajouterForce(+calcule_force_mur(r), 0.0, 0.0);
+            }
+        }
+
+        // Right wall: x = Lx
+        if (condl_xmax == ConditionLimite::Reflexive) {
+            const double r = std::max(Lds[0] - pos.getX(), eps_pos);
+            if (r < r_cut_mur) {
+                p->ajouterForce(-calcule_force_mur(r), 0.0, 0.0);
+            }
+        }
+
+        // z walls only in 3D
+        if (dim == 3 && condl_zmin == ConditionLimite::Reflexive) {
+            const double r = std::max(pos.getZ(), eps_pos);
+            if (r < r_cut_mur) {
+                p->ajouterForce(0.0, 0.0, +calcule_force_mur(r));
+            }
+        }
+
+        if (dim == 3 && condl_zmax == ConditionLimite::Reflexive) {
+            const double r = std::max(Lds[2] - pos.getZ(), eps_pos);
+            if (r < r_cut_mur) {
+                p->ajouterForce(0.0, 0.0, -calcule_force_mur(r));
+            }
+        }
+    }
+}
+
+
+void univers::applique_gravite() {
+    if (G == 0.0) return;
+
+    for (particule* p : particules) {
+        if (dim == 1) {
+            // Pas de direction verticale en 1D dans ce modèle.
+            continue;
+        }
+
+        if (dim == 2) {
+            p->ajouterForce(0.0, p->getMasse() * G, 0.0);
+        }
+
+        if (dim == 3) {
+            p->ajouterForce(0.0, 0.0, p->getMasse() * G);
         }
     }
 }

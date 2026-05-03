@@ -12,6 +12,7 @@
 
 #include "univers.hxx"
 #include "io.hxx"
+#include "output_paths.hxx"
 
 /**
  * @brief Sauvegarde une frame dans un fichier texte.
@@ -73,19 +74,19 @@ std::string trouver_script_python_3d() {
  * Modes disponibles :
  * - 't' : export texte + visualisation Python
  * - 'v' : export VTK + génération du fichier animation.vtk.series
- * - 'u' : export VTU + génération du fichier animation.vtu.series
+ * - 'x' : export VTU + génération du fichier animation.vtu.series
  *
  * @return EXIT_SUCCESS si l'exécution se termine correctement,
  *         EXIT_FAILURE en cas d'erreur.
  */
 int main(){
 
-    char mode;
-    std::cout << "Choisir le mode : (t = txt, v = vtk, u = vtu) : ";
+    std::string mode;
+    std::cout << "Choisir le mode : (t = txt, v = vtk, x = vtu) : ";
     std::cin >> mode;
 
-    if (mode != 't' && mode != 'v' && mode != 'u') {
-        std::cerr << "Mode invalide. Choisir 't', 'v' ou 'u'.\n";
+    if (mode != 't' && mode != 'v' && mode != 'x') {
+        std::cerr << "Mode invalide. Choisir 't', 'v' ou 'x'.\n";
         return EXIT_FAILURE;
     }
 
@@ -173,21 +174,29 @@ int main(){
     }
 
     std::ofstream file;
+
+    std::filesystem::path dossier_frames;
+    std::filesystem::path dossier_vtk;
+    std::filesystem::path dossier_vtu;
+
     if (mode == 't') {
-        std::filesystem::create_directories("frames_3d");
-        file.open("frames_3d/frames.txt");
+        dossier_frames = ensure_output_dir(OutputType::FramesTxt3D);
+
+        file.open(dossier_frames / "frames.txt");
+
         if (!file.is_open()) {
-            std::cerr << "Impossible d'ouvrir frames_3d/frames.txt\n";
+            std::cerr << "Impossible d'ouvrir "
+                    << dossier_frames / "frames.txt" << "\n";
             return EXIT_FAILURE;
         }
     }
 
     if (mode == 'v') {
-    std::filesystem::create_directories("vtk_frames_3d");
+        dossier_vtk = ensure_output_dir(OutputType::FramesVTK3D);
     }
 
-    if (mode == 'u') {
-        std::filesystem::create_directories("vtu_frames_3d");
+    if (mode == 'x') {
+        dossier_vtu = ensure_output_dir(OutputType::FramesVTU3D);
     }
 
     int frame_id = 0;
@@ -209,10 +218,10 @@ int main(){
                 sauvegarde_frame(file, uni, frame_id);
             }
             else if (mode == 'v') {
-                sauvegarde_frame_vtk(uni, frame_id, "vtk_frames_3d");
+                sauvegarde_frame_vtk(uni, frame_id, dossier_vtk.string());
             }
-            else if (mode == 'u') {
-                sauvegarde_frame_vtu(uni, frame_id, "vtu_frames_3d");
+            else if (mode == 'x') {
+                sauvegarde_frame_vtu(uni, frame_id, dossier_vtu.string());
             }
             frame_id++;
         }
@@ -232,26 +241,21 @@ int main(){
             return EXIT_FAILURE;
         }
 
-        std::string commande_python = "python3 " + script_python;
-        int code_python = system(commande_python.c_str());
-        if (code_python != 0) {
-            std::cerr << "Erreur lors de l'execution du script Python 3D.\n";
-            return EXIT_FAILURE;
-        }
+        std::cout << "Simulation 3D terminee.\n";
+        std::cout << "Pour visualiser les frames 3D texte, lancez :\n"
+                  << "python3 src/python_plot/plot_collision_3d.py\n";
     }
 
     if (mode == 'v') {
-    ecrire_fichier_series_json(frame_id, dt, save_every, "vtk_frames_3d", "vtk");
+    ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtk.string(), "vtk");
     std::cout << "Fichier de series genere : "
-              << std::filesystem::absolute("vtk_frames_3d/animation.vtk.series")
-              << "\n";
+              << (dossier_vtk / "animation.vtk.series") << "\n";
     }
 
-    if (mode == 'u') {
-        ecrire_fichier_series_json(frame_id, dt, save_every, "vtu_frames_3d", "vtu");
+    if (mode == 'x') {
+        ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtu.string(), "vtu");
         std::cout << "Fichier de series genere : "
-                << std::filesystem::absolute("vtu_frames_3d/animation.vtk.series")
-                << "\n";
+                << (dossier_vtu / "animation.vtu.series") << "\n";
     }
 
     return EXIT_SUCCESS;

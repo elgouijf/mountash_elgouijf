@@ -26,6 +26,7 @@
 
 #include "univers.hxx"
 #include "io.hxx"
+#include "output_paths.hxx"
 
 
 
@@ -68,7 +69,7 @@ std::string trouver_script_python() {
  */
 int main(){
 
-    char mode;
+    std::string mode;
     std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
     std::cin >> mode;
 
@@ -130,23 +131,29 @@ int main(){
     }
 
     std::ofstream file;
-    if (mode == 't') {
-        std::filesystem::create_directories("frames");
-        file.open("frames/frames.txt");
+
+    std::filesystem::path dossier_frames;
+    std::filesystem::path dossier_vtk;
+    std::filesystem::path dossier_vtu;
+
+    if (mode == "t") {
+        dossier_frames = ensure_output_dir(OutputType::FramesTxt);
+
+        file.open(dossier_frames / "frames.txt");
+
         if (!file.is_open()) {
-            std::cerr << "Impossible d'ouvrir frames/frames.txt\n";
+            std::cerr << "Impossible d'ouvrir "
+                    << dossier_frames / "frames.txt" << "\n";
             return EXIT_FAILURE;
         }
     }
-    std::string dossier_vtk = std::string(PROJECT_SOURCE_DIR) + "/vtk_frames";
-    std::string dossier_vtu = std::string(PROJECT_SOURCE_DIR) + "/vtu_frames";
 
-    if (mode == 'v') {
-        std::filesystem::create_directories(dossier_vtk);
+    if (mode == "v") {
+        dossier_vtk = ensure_output_dir(OutputType::FramesVTK);
     }
 
-    if (mode == 'x') {
-        std::filesystem::create_directories(dossier_vtu);
+    if (mode == "x") {
+        dossier_vtu = ensure_output_dir(OutputType::FramesVTU);
     }
 
     int frame_id = 0;
@@ -167,9 +174,9 @@ int main(){
         if (mode == 't') {
             sauvegarde_frame_txt(file, uni, frame_id);
         } else if (mode == 'v') {
-            sauvegarde_frame_vtk(uni, frame_id, dossier_vtk);
+            sauvegarde_frame_vtk(uni, frame_id, dossier_vtk.string());
         } else if (mode == 'x') {
-            sauvegarde_frame_vtu(uni, frame_id, dossier_vtu);
+            sauvegarde_frame_vtu(uni, frame_id, dossier_vtu.string());
         }
         frame_id++;
     }
@@ -189,25 +196,21 @@ int main(){
             return EXIT_FAILURE;
         }
 
-        std::string commande_python = "python3 " + script_python;
-        int code_python = system(commande_python.c_str());
-        if (code_python != 0) {
-            std::cerr << "Erreur lors de l'execution du script Python.\n";
-            return EXIT_FAILURE;
-        }
+        std::cout << "Simulation terminee.\n";
+        std::cout << "Pour visualiser les frames texte, lancez :\n"
+          << "python3 src/python_plot/plot_collision.py\n";
     }
 
     if (mode == 'v') {
-        ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtk, "vtk");
+        ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtk.string(), "vtk");
         std::cout << "Fichier de series genere : "
-          << std::filesystem::absolute(dossier_vtk + "/animation.vtk.series")
-          << "\n";
+                << (dossier_vtk / "animation.vtk.series") << "\n";
     }
 
     if (mode == 'x') {
-        ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtu, "vtu");
+        ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtu.string(), "vtu");
         std::cout << "Fichier de series genere : "
-          << std::filesystem::absolute(dossier_vtu + "/animation.vtk.series")
+          << (dossier_vtu / "animation.vtu.series")
           << "\n";
     }
 

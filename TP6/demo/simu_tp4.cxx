@@ -26,6 +26,7 @@
 
 #include "univers.hxx"
 #include "io.hxx"
+#include "output_paths.hxx"
 
 
 
@@ -69,9 +70,9 @@ std::string trouver_script_python() {
  */
 int main(){
 
-    std::string mode ="x";
-    // std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
-    // std::cin >> mode;
+    std::string mode;
+    std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
+    std::cin >> mode;
 
     if (mode != "t" && mode != "v" && mode != "x") {
         std::cerr << "Mode invalide. Choisir 't', 'v' ou 'x'.\n";
@@ -130,24 +131,45 @@ int main(){
         uni.ajoute_particule(new particule(id++, 2, mass, pos, v2));
     }
 
+    /// Garantir que  les dossiers de sortie sont toujours ceux dans la racine du projet, peu importe le répertoire de lancement du binaire
+
+    std::filesystem::path dossier_energy = ensure_output_dir(OutputType::Energy);
+
+    std::ofstream energy_file(dossier_energy / "energie_tp4.csv");
+
+    if (!energy_file.is_open()) {
+        std::cerr << "Impossible d'ouvrir "
+                << dossier_energy / "energie_tp4.csv" << "\n";
+        return EXIT_FAILURE;
+    }
+
+    ecrire_entete_energie(energy_file);
+
     std::ofstream file;
+
+    std::filesystem::path dossier_frames;
+    std::filesystem::path dossier_vtk;
+    std::filesystem::path dossier_vtu;
+
     if (mode == "t") {
-        std::filesystem::create_directories("frames");
-        file.open("frames/frames.txt");
+        dossier_frames = ensure_output_dir(OutputType::FramesTxt);
+
+        file.open(dossier_frames / "frames.txt");
+
         if (!file.is_open()) {
-            std::cerr << "Impossible d'ouvrir frames/frames.txt\n";
+            std::cerr << "Impossible d'ouvrir "
+                    << dossier_frames / "frames.txt" << "\n";
             return EXIT_FAILURE;
         }
     }
 
     if (mode == "v") {
-    std::filesystem::create_directories("vtk_frames");
+        dossier_vtk = ensure_output_dir(OutputType::FramesVTK);
     }
 
     if (mode == "x") {
-        std::filesystem::create_directories("vtu_frames");
+        dossier_vtu = ensure_output_dir(OutputType::FramesVTU);
     }
-
     int frame_id = 0;
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -158,18 +180,33 @@ int main(){
     for (int frame = 0; frame < num_frames; ++frame) {
         uni.evolue_particules(dt);
 
-        if (frame % 1000 == 0) {
-            std::cout << "Frame " << frame << "/" << num_frames << "\n"
-            << "  Em = " << uni.energie_mecanique() << "\n";
+        for (int frame = 0; frame < num_frames; ++frame) {
+            uni.evolue_particules(dt);
+
+            if (frame % 1000 == 0) {
+                double Ec = uni.energie_cinetique();
+                double Ep = uni.energie_potentielle();
+                double Em = Ec + Ep;
+
+                ecrire_energie(energy_file,
+                            frame,
+                            frame * dt,
+                            Ec,
+                            Ep,
+                            Em);
+
+                std::cout << "Frame " << frame << "/" << num_frames
+                        << "  Em = " << Em << "\n";
+            }
         }
 
     if (frame % save_every == 0) {
         if (mode == "t") {
             sauvegarde_frame_txt(file, uni, frame_id);
         } else if (mode == "v") {
-            sauvegarde_frame_vtk(uni, frame_id, "vtk_frames");
+            sauvegarde_frame_vtk(uni, frame_id, dossier_vtk.string());
         } else if (mode == "x") {
-            sauvegarde_frame_vtu(uni, frame_id, "vtu_frames");
+            sauvegarde_frame_vtu(uni, frame_id, dossier_vtu.string());
         }
         frame_id++;
     }
@@ -189,25 +226,27 @@ int main(){
             return EXIT_FAILURE;
         }
 
-        std::string commande_python = "python3 " + script_python;
-        int code_python = system(commande_python.c_str());
-        if (code_python != 0) {
-            std::cerr << "Erreur lors de l'execution du script Python.\n";
-            return EXIT_FAILURE;
-        }
+        std::cout << "Simulation TP4 terminee.\n";
+        std::cout << "Pour tracer l'energie :\n"
+                  << "python3 src/python_plot/plot_energy.py energy/energie_tp4.csv\n";
     }
 
     if (mode == "v") {
-        ecrire_fichier_series_json(frame_id, dt, save_every, "vtk_frames", "vtk");
-        std::cout << "Fichier de series genere : vtk_frames/animation.vtk.series\n";
+        ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtk.string(), "vtk");
+        std::cout << "Fichier de series genere : " << dossier_vtk / "animation.vtk.series" << "\n";
     }
 
     if (mode == "x") {
-        ecrire_fichier_series_json(frame_id, dt, save_every, "vtu_frames", "vtu");
-        std::cout << "Fichier de series genere : vtu_frames/animation.vtk.series\n";
+        ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtu.string(), "vtu");
+        std::cout << "Fichier de series genere : " << dossier_vtu / "animation.vtu.series" << "\n";
     }
 
 
+    energy_file.close();
 
+    std::cout << "Fichier energie genere : "
+            << (dossier_energy / "energie_tp4.csv") << "\n";
+
+    energy_file.close();
     return EXIT_SUCCESS;
 }

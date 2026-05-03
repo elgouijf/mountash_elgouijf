@@ -143,7 +143,7 @@ TEST(CelluleTest, GetterParticulesNonConst) {
     cellule c;
     particule p(1, 0, 1.0, vecteur(), vecteur());
 
-    c.getParticules().push_back(&p);
+    c.ajoute_particule(&p);
 
     ASSERT_EQ(c.getParticules().size(), 1);
     EXPECT_EQ(c.getParticules()[0], &p);

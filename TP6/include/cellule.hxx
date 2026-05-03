@@ -66,23 +66,12 @@ class cellule {
          */
         const std::vector<particule*>& getParticules() const;
 
-        /**
-         * @brief Retourne les particules contenues dans la cellule.
-         * @return Référence modifiable vers le vecteur de particules.
-         */
-        std::vector<particule*>& getParticules();
 
         /**
          * @brief Retourne la liste des cellules voisines.
          * @return Référence constante vers le vecteur des voisins.
          */
         const std::vector<cellule*>& getVoisins() const;
-
-        /**
-         * @brief Retourne la liste des cellules voisines.
-         * @return Référence modifiable vers le vecteur des voisins.
-         */
-        std::vector<cellule*>& getVoisins();
 };
 
 #endif

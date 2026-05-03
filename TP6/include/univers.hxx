@@ -72,6 +72,8 @@ class univers {
          */
         double sigma;
 
+        /** @brief Conditions aux limites selon chaque direction. */
+
         ConditionLimite condl_xmin;
 
         ConditionLimite condl_xmax;
@@ -79,14 +81,18 @@ class univers {
         ConditionLimite condl_ymin;
 
         ConditionLimite condl_ymax;
-
+sk
         ConditionLimite condl_zmin;
 
         ConditionLimite condl_zmax;
 
         bool utiliser_potentiel_mur;
 
-        double energie_potentielle();
+        /** @brief Vide toutes les particules de l'univers. */
+        void clear_particules();
+
+        /** @brief Copie les paramètres d'un autre univers. */
+        void copier_parametres_depuis(const univers& other);
 
     public:
         /**
@@ -94,13 +100,28 @@ class univers {
          */
         univers();
 
+        /**
+         * @brief Construit un univers paramétré.
+         *
+         * Initialise les paramètres physiques et géométriques de l'univers,
+         * construit la grille de cellules, puis y ajoute les particules fournies.
+         *
+         * @param v Vecteur initial de particules.
+         * @param Lds Tailles du domaine selon chaque direction.
+         * @param r_cut Distance de coupure des interactions.
+         * @param dim Dimension de l'univers.
+         * @param eps Paramètre epsilon du potentiel de Lennard-Jones.
+         * @param sigma Paramètre sigma du potentiel de Lennard-Jones.
+         */
         univers(std::vector<particule*>& v,
                 std::vector<double> Lds,
                 double r_cut,
                 int dim,
                 double eps,
                 double sigma);
-
+        
+        
+        /** @brief Construit un univers paramétré avec un champ gravitationnel. */
         univers(std::vector<particule*>& v,
                 std::vector<double> Lds,
                 double r_cut,
@@ -108,7 +129,8 @@ class univers {
                 double eps,
                 double sigma,
                 double G);
-
+        
+        /** @brief Construit un univers paramétré avec un champ gravitationnel et potentiel de mur. */
         univers(std::vector<particule*>& v,
                 std::vector<double> Lds,
                 double r_cut,
@@ -124,6 +146,32 @@ class univers {
          * Libère la mémoire des particules allouées dynamiquement.
          */
         ~univers();
+
+        /**
+        * @brief Constructeur de copie.
+        * @param other L'objet à copier.
+        */
+        univers(const univers& other);
+
+        /**
+         * @brief Opérateur d'affectation par copie.
+         * @param other L'objet à copier.
+         * @return Référence à l'objet copié.
+         */
+        univers& operator=(const univers& other);
+
+        /** 
+         * @brief Constructeur de déplacement.
+         * @param other L'objet à déplacer.
+         */
+        univers(univers&& other) noexcept;
+
+        /** 
+         * @brief Opérateur d'affectation par déplacement.
+         * @param other L'objet à déplacer.
+         * @return Référence à l'objet déplacé.
+         */
+        univers& operator=(univers&& other) noexcept;
 
         /**
          * @brief Ajoute une particule à l'univers.
@@ -218,12 +266,6 @@ class univers {
         const std::vector<cellule>& getCellules() const;
 
         /**
-         * @brief Retourne la grille des cellules.
-         * @return Référence modifiable vers le vecteur des cellules.
-         */
-        std::vector<cellule>& getCellules();
-
-        /**
          * @brief Modifie le paramètre epsilon.
          * @param eps Nouvelle valeur de epsilon.
          */
@@ -235,28 +277,74 @@ class univers {
          */
         void setSigma(double sigma);
 
+        /**
+         * @brief Calcule l'énergie cinétique totale de l'univers.
+         * @return Énergie cinétique.
+         */
         double energie_cinetique() const;
-
+        
+        /**
+         * @brief Calcule l'énergie potentielle totale de l'univers.
+         * @return Énergie potentielle.
+         */
         double energie_potentielle() const;
 
+        /**
+         * @brief Calcule l'énergie mécanique totale de l'univers.
+         * @return Énergie mécanique.
+         */
         double energie_mecanique() const;
 
+        /**
+        * @brief Modifie les conditions aux limites selon chaque direction.
+        * @param xmin Condition aux limites pour x_min.
+        * @param xmax Condition aux limites pour x_max.
+        * @param ymin Condition aux limites pour y_min.
+        * @param ymax Condition aux limites pour y_max.
+        * @param zmin Condition aux limites pour z_min.
+        * @param zmax Condition aux limites pour z_max.
+        */
         void setConditionsLimites(ConditionLimite xmin, ConditionLimite xmax,
                               ConditionLimite ymin, ConditionLimite ymax,
                               ConditionLimite zmin, ConditionLimite zmax);
 
-        void applique_conditions_limites();
 
+        /**
+         * @brief Applique les conditions aux limites à toutes les particules.
+         * @return true si au moins une particule a été supprimée, false sinon.
+         */
+        void applique_conditions_limites();
+        
+        /** @brief Applique les conditions aux limites à une particule donnée.
+         * @param p Pointeur vers la particule.
+         * @return true si la particule a été supprimée, false sinon.
+        */
         bool applique_conditions_limites_particule(particule* p);
 
+        /** @brief Calcule la force exercée par un mur sur une particule.
+         * @param r Distance entre la particule et le mur.
+         * @return Force exercée.
+         */
         double calcule_force_mur(double r) const;
+        
 
+        /** @brief Limite les vitesses des particules.
+         * @param N1 Index de la première particule.
+         * @param N2 Index de la deuxième particule.
+         */
         void limite_vitesses(int N1,int N2);
 
+        /** @brief Active ou désactive l'utilisation du potentiel de mur.
+         * @param actif true pour activer, false pour désactiver.
+         */
         void setUtiliserPotentielMur(bool actif);
 
+        /** @brief Applique la gravité à toutes les particules.
+         */
         void applique_gravite();
 
+        /** @brief Applique le potentiel de mur à toutes les particules.
+         */
         void applique_potentiel_mur();
 };
 

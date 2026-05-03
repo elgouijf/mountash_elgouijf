@@ -6,6 +6,7 @@ add_library(particules
     cellule.cxx
     univers.cxx
     io.cxx
+    output_paths.cxx
 )
 
 # Créer l'exécutable principal de la simulation

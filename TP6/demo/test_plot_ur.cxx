@@ -5,7 +5,7 @@
 #include <string>
 #include <filesystem>
 #include <vector>
-
+#include "output_paths.hxx"
 
 /**
  * @brief Calcule le potentiel de Lennard-Jones pour une distance donnée.
@@ -71,8 +71,8 @@ int main() {
         return 1;
     }
 
-    std::string commande = "python3 " + script_python;
-    int code = std::system(commande.c_str());
+    std::cout << "Donnees generees.\n";
+    std::cout << "Lancez le script Python correspondant depuis src/python_plot si necessaire.\n";
 
     if (code != 0) {
         std::cerr << "Erreur lors de l'execution de plot_ur.py\n";

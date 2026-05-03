@@ -1,0 +1,103 @@
+# TP6 — Simulation de particules
+
+## 📌 Description
+
+Ce projet implémente une simulation de particules en C++ basée sur un potentiel de Lennard-Jones.
+Les particules évoluent dans un espace 1D, 2D ou 3D et interagissent localement via une grille de cellules.
+
+Le code inclut :
+
+* une représentation vectorielle (`vecteur`)
+* des particules (`particule`)
+* une structure de cellules spatiales (`cellule`)
+* un univers de simulation (`univers`)
+* une intégration temporelle de type **Störmer–Verlet**
+
+---
+
+## ⚙️ Compilation
+
+```bash
+mkdir build
+cd build
+cmake ..
+make
+```
+
+---
+
+## ▶️ Exécution
+
+### Simulation principale
+
+```bash
+./src/simu
+```
+
+### Programmes de démonstration
+
+```bash
+./demo/simu_tp4
+./demo/test_3d
+./demo/test_plot_ur
+```
+
+---
+
+## 🧪 Tests
+
+```bash
+ctest
+```
+
+ou directement :
+
+```bash
+./test/unit_tests
+```
+
+---
+
+## 🧠 Structure du projet
+
+```text
+.
+├── include/     # Fichiers d'en-tête (.hxx)
+├── src/         # Implémentation principale
+├── test/        # Tests unitaires (GoogleTest)
+├── demo/        # Programmes de démonstration
+├── doc/         # Documentation Doxygen
+├── CMakeLists.txt
+└── README.md
+```
+
+---
+
+## ⚡ Optimisation du calcul des interactions
+
+Le calcul des forces est optimisé grâce à une décomposition spatiale en cellules.
+
+Chaque cellule ne traite que les interactions avec :
+
+* ses propres particules
+* un sous-ensemble de ses voisines
+
+Afin d’éviter les calculs redondants, seules les cellules dont l’indice linéaire est supérieur ou égal à celui de la cellule courante sont considérées.
+
+Cette stratégie repose sur la **troisième loi de Newton** (action-réaction) :
+
+> Chaque interaction entre deux particules est calculée une seule fois, la force opposée étant appliquée simultanément aux deux particules.
+
+Cela permet de réduire significativement le coût du calcul.
+
+---
+
+## 📚 Documentation
+
+Pour générer la documentation avec Doxygen :
+
+```bash
+make doc
+```
+
+

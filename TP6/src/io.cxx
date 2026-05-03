@@ -31,6 +31,12 @@ void sauvegarde_frame_txt(std::ofstream& file, const univers& u, int frame_id) {
     }
 }
 
+
+/** @brief Sauvegarde une frame au format VTK.
+ * @param u Univers contenant les particules.
+ * @param frame_id Identifiant de la frame.
+ * @param dossier Dossier de sortie.
+ */
 void sauvegarde_frame_vtk(const univers& u, int frame_id, const std::string& dossier) {
     std::ostringstream nom;
     nom << dossier << "/frame_"
@@ -70,6 +76,12 @@ void sauvegarde_frame_vtk(const univers& u, int frame_id, const std::string& dos
     }
 }
 
+
+/** @brief Sauvegarde une frame au format VTK XML (.vtu).
+ * @param u Univers contenant les particules.
+ * @param frame_id Identifiant de la frame.
+ * @param dossier Dossier de sortie.
+ */
 void sauvegarde_frame_vtu(const univers& u, int frame_id, const std::string& dossier) {
     std::ostringstream nom;
     nom << dossier << "/frame_"
@@ -167,9 +179,11 @@ void sauvegarde_frame_vtu(const univers& u, int frame_id, const std::string& dos
 void ecrire_fichier_series_json(int nb_frames, double dt, int save_every,
                                 const std::string& dossier,
                                 const std::string& extension) {
-    std::ofstream file(dossier + "/animation.vtk.series");
+    const std::string nom_series = dossier + "/animation." + extension + ".series";
+
+    std::ofstream file(nom_series);
     if (!file.is_open()) {
-        std::cerr << "Impossible d'ouvrir " << dossier << "/animation.vtk.series\n";
+        std::cerr << "Impossible d'ouvrir " << nom_series << "\n";
         return;
     }
 
@@ -193,23 +207,32 @@ void ecrire_fichier_series_json(int nb_frames, double dt, int save_every,
     file << "}\n";
 }
 
-void sauvegarde_cadre_vtk(const std::vector<double>& Lds, const std::string& dossier) {
-    std::ofstream file(dossier + "/cadre.vtk");
 
-    file << "# vtk DataFile Version 3.0\n";
-    file << "Cadre domaine\n";
-    file << "ASCII\n";
-    file << "DATASET POLYDATA\n";
+/** @brief Écrit l'en-tête du fichier d'énergie.
+ * @param file Référence au fichier d'énergie.
+ */
+void ecrire_entete_energie(std::ofstream& file) {
+    file << "frame,time,Ec,Ep,Em\n";
+}
 
-    file << "POINTS 4 float\n";
-    file << "0 0 0\n";
-    file << Lds[0] << " 0 0\n";
-    file << Lds[0] << " " << Lds[1] << " 0\n";
-    file << "0 " << Lds[1] << " 0\n";
 
-    file << "LINES 4 12\n";
-    file << "2 0 1\n";
-    file << "2 1 2\n";
-    file << "2 2 3\n";
-    file << "2 3 0\n";
+/** @brief Écrit les valeurs d'énergie dans le fichier.
+ * @param file Référence au fichier d'énergie
+* @param frame Identifiant de la frame.
+* @param time Temps écoulé.
+* @param Ec Énergie cinétique.
+* @param Ep Énergie potentielle.
+* @param Em Énergie mécanique (Ec + Ep).
+*/
+void ecrire_energie(std::ofstream& file,
+                    int frame,
+                    double time,
+                    double Ec,
+                    double Ep,
+                    double Em) {
+    file << frame << ","
+         << time << ","
+         << Ec << ","
+         << Ep << ","
+         << Em << "\n";
 }

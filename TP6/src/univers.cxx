@@ -130,51 +130,219 @@ univers::univers(std::vector<particule*>& v,
 {
 }
 
+void univers::clear_particules() {
+    for (particule* p : particules) {
+        delete p;
+    }
+
+    particules.clear();
+    num_particules = 0;
+}
+
+
+void univers::copier_parametres_depuis(const univers& other) {
+    num_particules = other.num_particules;
+    r_cut = other.r_cut;
+    G = other.G;
+    dim = other.dim;
+    Lds = other.Lds;
+    ncd = other.ncd;
+    eps = other.eps;
+    sigma = other.sigma;
+
+    condl_xmin = other.condl_xmin;
+    condl_xmax = other.condl_xmax;
+    condl_ymin = other.condl_ymin;
+    condl_ymax = other.condl_ymax;
+    condl_zmin = other.condl_zmin;
+    condl_zmax = other.condl_zmax;
+
+    utiliser_potentiel_mur = other.utiliser_potentiel_mur;
+}
 /**
  * @brief Détruit l'univers et libère la mémoire des particules.
  */
 univers::~univers() {
-    for (particule* p : particules) {
-        delete p;
-    }
+    clear_particules();
+}
+/**
+ * @brief Constructeur de copie.
+ * @param other L'objet à copier.
+ */
+univers::univers(const univers& other) {
+    copier_parametres_depuis(other);
+
     particules.clear();
+    particules.reserve(other.particules.size());
+
+    for (const particule* p : other.particules) {
+        particules.push_back(new particule(*p));
+    }
+
+    num_particules = static_cast<int>(particules.size());
+
+    initialise_cellules();
+    place_particules_dans_cellules();
 }
 
+/**
+ * @brief Opérateur d'affectation.
+ * @param other L'objet à affecter.
+ * @return Référence à l'objet affecté.
+ */
+univers& univers::operator=(const univers& other) {
+    if (this == &other) {
+        return *this;
+    }
+
+    clear_particules();
+    cellules.clear();
+
+    copier_parametres_depuis(other);
+
+    particules.reserve(other.particules.size());
+
+    for (const particule* p : other.particules) {
+        particules.push_back(new particule(*p));
+    }
+
+    num_particules = static_cast<int>(particules.size());
+
+    initialise_cellules();
+    place_particules_dans_cellules();
+
+    return *this;
+}
+
+/**
+ * @brief Constructeur de déplacement.
+ * @param other L'objet à déplacer.
+ */
+univers::univers(univers&& other) noexcept
+    : particules(std::move(other.particules)),
+      num_particules(other.num_particules),
+      r_cut(other.r_cut),
+      G(other.G),
+      dim(other.dim),
+      Lds(std::move(other.Lds)),
+      ncd(std::move(other.ncd)),
+      cellules(std::move(other.cellules)),
+      eps(other.eps),
+      sigma(other.sigma),
+      condl_xmin(other.condl_xmin),
+      condl_xmax(other.condl_xmax),
+      condl_ymin(other.condl_ymin),
+      condl_ymax(other.condl_ymax),
+      condl_zmin(other.condl_zmin),
+      condl_zmax(other.condl_zmax),
+      utiliser_potentiel_mur(other.utiliser_potentiel_mur)
+{
+    other.num_particules = 0;
+}
+
+
+/** @brief Opérateur d'affectation par déplacement.
+ * @param other L'objet à déplacer.
+ * @return Référence à l'objet déplacé.
+ */
+univers& univers::operator=(univers&& other) noexcept {
+    if (this == &other) {
+        return *this;
+    }
+
+    clear_particules();
+    cellules.clear();
+
+    particules = std::move(other.particules);
+    num_particules = other.num_particules;
+
+    r_cut = other.r_cut;
+    G = other.G;
+    dim = other.dim;
+
+    Lds = std::move(other.Lds);
+    ncd = std::move(other.ncd);
+    cellules = std::move(other.cellules);
+
+    eps = other.eps;
+    sigma = other.sigma;
+
+    condl_xmin = other.condl_xmin;
+    condl_xmax = other.condl_xmax;
+    condl_ymin = other.condl_ymin;
+    condl_ymax = other.condl_ymax;
+    condl_zmin = other.condl_zmin;
+    condl_zmax = other.condl_zmax;
+
+    utiliser_potentiel_mur = other.utiliser_potentiel_mur;
+
+    other.num_particules = 0;
+
+    return *this;
+}
+
+
+/** @brief Retourne l'ensemble des particules.
+ * @return Référence constante vers le vecteur de particules.
+ */
 const std::vector<particule*>& univers::getParticules() const {
     return particules;
 }
-
+/** @brief Active ou désactive l'utilisation du potentiel de mur.
+ * @param actif true pour activer, false pour désactiver.
+ */
 void univers::setUtiliserPotentielMur(bool actif) {
     utiliser_potentiel_mur = actif;
 }
 
+
+/** @brief Retourne le nombre de particules.
+ * @return Nombre de particules.
+ */
 int univers::getNumParticules() const {
     return num_particules;
 }
 
+
+/** @brief Retourne la distance de coupure.
+ * @return Valeur de r_cut.
+ */
 double univers::getRCut() const {
     return r_cut;
 }
 
+
+/** @brief Retourne la dimension de l'univers.
+ * @return Dimension.
+ */
 int univers::getDim() const {
     return dim;
 }
 
+
+/** @brief Retourne les tailles du domaine.
+ * @return Référence constante vers le vecteur des tailles.
+ */
 const std::vector<double>& univers::getLds() const {
     return Lds;
 }
 
+/** @brief Retourne le nombre de cellules par direction.
+ * @return Référence constante vers le vecteur ncd.
+ */
 const std::vector<int>& univers::getNcd() const {
     return ncd;
 }
 
+
+/** @brief Retourne la grille des cellules.
+ * @return Référence constante vers le vecteur des cellules.
+ */
 const std::vector<cellule>& univers::getCellules() const {
     return cellules;
 }
 
-std::vector<cellule>& univers::getCellules() {
-    return cellules;
-}
+
 
 /**
  * @brief Ajoute une particule à l'univers en respectant sa dimension effective.
@@ -247,6 +415,10 @@ void univers::evolue_particules(double dt) {
     applique_conditions_limites();
 }
 
+
+/** @brief Calcule l'énergie cinétique de l'univers.
+ * @return Valeur de l'énergie cinétique.
+ */
 double univers::energie_cinetique() const {
     double Ec = 0.0;
 
@@ -262,6 +434,10 @@ double univers::energie_cinetique() const {
     return Ec;
 }
 
+
+/** @brief Calcule l'énergie potentielle de l'univers.
+ * @return Valeur de l'énergie potentielle.
+ */
 double univers::energie_potentielle() const {
     double Ep = 0.0;
 
@@ -304,12 +480,18 @@ double univers::energie_potentielle() const {
 }
 
 
+/** @brief Calcule l'énergie mécanique totale de l'univers.
+ * @return Valeur de l'énergie mécanique.
+ */
 double univers::energie_mecanique() const {
     return energie_cinetique() + energie_potentielle();
 }   
 
 
-
+/** @brief Calcule la force exercée par le mur sur une particule.
+ * @param r Distance à laquelle la force est calculée.
+ * @return Valeur de la force.
+ */
 double univers::calcule_force_mur(double r) const {
     r = std::max(r, 1e-12);
 
@@ -533,6 +715,7 @@ void univers::setConditionsLimites(ConditionLimite cond_xmin, ConditionLimite co
 }
 
 
+/** @brief Applique les conditions aux limites à toutes les particules. */
 void univers::applique_conditions_limites() {
     std::vector<particule*> survivantes;
     survivantes.reserve(particules.size());
@@ -791,6 +974,10 @@ void univers::calcule_forces(){
     }
 }
 
+
+/** @brief Applique le potentiel de mur à toutes les particules.
+ * @param u Univers auquel appliquer le potentiel de mur.
+ */
 void univers::applique_potentiel_mur() {
     const double r_cut_mur = 0.5 * std::pow(2.0, 1.0 / 6.0) * sigma;
     const double eps_pos   = 1e-6; // numerical guard for force evaluation only
@@ -848,6 +1035,9 @@ void univers::applique_potentiel_mur() {
 }
 
 
+/** @brief Applique la gravité à toutes les particules.
+ * @param u Univers auquel appliquer la gravité.
+ */
 void univers::applique_gravite() {
     if (G == 0.0) return;
 

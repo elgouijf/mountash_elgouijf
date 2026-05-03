@@ -1,5 +1,10 @@
 #include "cellule.hxx"
 
+/**
+ * @brief Constructeur par défaut.
+ *
+ * Initialise une cellule vide.
+ */
 cellule::cellule(){
     // vecteur vide
     this->num_particules = 0;
@@ -57,18 +62,29 @@ void cellule::ajoute_voisin(cellule* c){
     this->voisins.push_back(c);
 }
 
+
+/**
+ * @brief Retourne les particules contenues dans la cellule.
+ *
+ * Permet d'accéder aux particules pour le calcul des interactions
+ * ou pour l'export des données.
+ *
+ * @return Référence constante vers le vecteur de particules.
+ */
 const std::vector<particule*>& cellule::getParticules() const {
     return particules;
 }
 
-std::vector<particule*>& cellule::getParticules() {
-    return particules;
-}
 
+
+/**
+ * @brief Retourne les cellules voisines.
+ *
+ * Permet d'accéder aux cellules adjacentes pour le calcul des interactions
+ * de Lennard-Jones.
+ *
+ * @return Référence constante vers le vecteur de voisins.
+ */
 const std::vector<cellule*>& cellule::getVoisins() const {
-    return this->voisins;
-}
-
-std::vector<cellule*>& cellule::getVoisins() {
     return this->voisins;
 }

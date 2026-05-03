@@ -16,13 +16,14 @@
 
 #include "univers.hxx"
 #include "io.hxx"
+#include "output_paths.hxx"
 
 using namespace std;
 
 int main() {
-    std::string mode = "x";
-    // std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
-    // std::cin >> mode;
+    std::string mode;
+    std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
+    std::cin >> mode;
 
     if (mode != "t" && mode != "v" && mode != "x") {
         std::cerr << "Mode invalide. Choisir 't', 'v' ou 'x'.\n";
@@ -84,6 +85,8 @@ int main() {
             double y = y0_pave + j * dist_entre_particules;
 
             uni.ajoute_particule(
+                /* les particules du pavé ont une masse légèrement supérieure pour mieux différencier
+                  les deux objets dans ParaView en utilisant la coloeation par masse */
                 new particule(id++, 2, masse + 0.001, vecteur(x, y, 0.0), v_pave)
             );
         }
@@ -130,29 +133,43 @@ int main() {
     // ==========================
     // Fichiers de sortie
     // ==========================
+    // Enérgies mécaniques
+    std::filesystem::path dossier_energy = ensure_output_dir(OutputType::Energy);
+
+    std::ofstream energy_file(dossier_energy / "energie_tp6.csv"); // fichier d'énergie 
+
+    if (!energy_file.is_open()) {
+        std::cerr << "Impossible d'ouvrir "
+                << dossier_energy / "energie_tp6.csv" << "\n";
+        return EXIT_FAILURE;
+    }
+
+    ecrire_entete_energie(energy_file);
+
     std::ofstream file;
 
+    std::filesystem::path dossier_frames;
+    std::filesystem::path dossier_vtk;
+    std::filesystem::path dossier_vtu;
+
     if (mode == "t") {
-        std::filesystem::create_directories("frames");
-        file.open("frames/frames.txt");
+        dossier_frames = ensure_output_dir(OutputType::FramesTxt);
+
+        file.open(dossier_frames / "frames.txt");
 
         if (!file.is_open()) {
-            std::cerr << "Impossible d'ouvrir frames/frames.txt\n";
+            std::cerr << "Impossible d'ouvrir "
+                    << dossier_frames / "frames.txt" << "\n";
             return EXIT_FAILURE;
         }
     }
 
-    string dossier_vtk;
-    string dossier_vtu;
-
     if (mode == "v") {
-        dossier_vtk = "vtk_frames";
-        std::filesystem::create_directories(dossier_vtk);
+        dossier_vtk = ensure_output_dir(OutputType::FramesVTK);
     }
 
     if (mode == "x") {
-        dossier_vtu = "vtu_frames";
-        std::filesystem::create_directories(dossier_vtu);
+        dossier_vtu = ensure_output_dir(OutputType::FramesVTU);
     }
 
     // ==========================
@@ -180,11 +197,19 @@ int main() {
         uni.evolue_particules(dt);
 
         if (frame % 1000 == 0) {
+            double Ec = uni.energie_cinetique();
+            double Ep = uni.energie_potentielle();
+            double Em = Ec + Ep;
+
+            ecrire_energie(energy_file,
+                        frame,
+                        frame * dt,
+                        Ec,
+                        Ep,
+                        Em);
+
             std::cout << "Frame " << frame << "/" << num_frames
-                      << "  particules : " << uni.getNumParticules()
-                      << "  Ec = " << uni.energie_cinetique()
-                      << "  Em = " << uni.energie_mecanique()
-                      << "\n";
+                    << "  Em = " << Em << "\n";
 
             if (activer_limiteur && frame > 0) {
                 uni.limite_vitesses(N1, N2);
@@ -196,10 +221,10 @@ int main() {
                 sauvegarde_frame_txt(file, uni, frame_id);
             }
             else if (mode == "v") {
-                sauvegarde_frame_vtk(uni, frame_id, dossier_vtk);
+                sauvegarde_frame_vtk(uni, frame_id, dossier_vtk.string());
             }
             else if (mode == "x") {
-                sauvegarde_frame_vtu(uni, frame_id, dossier_vtu);
+                sauvegarde_frame_vtu(uni, frame_id, dossier_vtu.string());
             }
 
             frame_id++;
@@ -216,16 +241,20 @@ int main() {
     }
 
     if (mode == "v") {
-        ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtk, "vtk");
+        ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtk.string(), "vtk");
         std::cout << "Fichier de series genere : "
-                  << dossier_vtk << "/animation.vtk.series\n";
+                  << (dossier_vtk / "animation.vtk.series") << "\n";
     }
 
     if (mode == "x") {
-        ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtu, "vtu");
+        ecrire_fichier_series_json(frame_id, dt, save_every, dossier_vtu.string(), "vtu");
         std::cout << "Fichier de series genere : "
-                  << dossier_vtu << "/animation.vtk.series\n";
+                  << (dossier_vtu / "animation.vtu.series") << "\n";
     }
 
+    energy_file.close();
+
+    std::cout << "Fichier energie genere : "
+            << (dossier_energy / "energie_tp6.csv") << "\n";
     return EXIT_SUCCESS;
 }

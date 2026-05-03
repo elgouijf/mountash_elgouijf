@@ -2,9 +2,12 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+from pathlib import Path
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent.parent
 
-def load_frames(filename="frames/frames.txt"):
+def load_frames(filename=None):
     """
     Charge les données des frames de simulation depuis un fichier texte.
 
@@ -33,6 +36,10 @@ def load_frames(filename="frames/frames.txt"):
     FileNotFoundError
         Si le fichier n'existe pas.
     """
+    if filename is None:
+        filename = PROJECT_ROOT / "frames_3d" / "frames.txt"
+    else:
+        filename = Path(filename)
     if not os.path.exists(filename):
         raise FileNotFoundError(f"Fichier introuvable : {filename}")
 

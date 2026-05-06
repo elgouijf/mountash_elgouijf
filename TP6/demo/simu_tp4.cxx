@@ -193,16 +193,15 @@ int main(){
         uni.evolue_particules(dt);
 
         if (frame % 1000 == 0) {
-            /*double Ec = uni.energie_cinetique();
+            double Ec = uni.energie_cinetique();
             double Ep = uni.energie_potentielle();
             double Em = Ec + Ep;
 
             ecrire_energie(energy_file, frame, frame * dt, Ec, Ep, Em);
 
             std::cout << "Frame " << frame << "/" << num_frames
-                    << "  Em = " << Em << "\n"; */
-            std::cout << "Frame " << frame << "/" << num_frames
-                    <<  "\n"; 
+                    << "  Em = " << Em << "\n";
+            //std::cout << "Frame " << frame << "/" << num_frames <<  "\n"; 
             
             
         } 

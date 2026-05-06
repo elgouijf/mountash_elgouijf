@@ -376,11 +376,14 @@ void univers::ajoute_particule(particule* p) {
     p->setForce(frc);
 
     this->particules.push_back(p);
+    p->setIndexUnivers(static_cast<int>(this->particules.size()) - 1);
+
     this->num_particules++;
 
     cellule* c = place_particule_dans_cellule(p);
     if (c->getParticules().size() == 1)
         cellules_occupees.push_back(c);
+
 }
 
 /**
@@ -585,14 +588,23 @@ cellule* univers::place_particule_dans_cellule(particule* p) {
  * est replacée à partir de sa position actuelle.
  */
 void univers::place_particules_dans_cellules() {
-    for (cellule* c : cellules_occupees)
+    for (cellule* c : cellules_occupees) {
         c->vide();
+    }
+
     cellules_occupees.clear();
 
-    for (particule* p : particules) {
+    for (int i = 0; i < static_cast<int>(particules.size()); ++i) {
+        particule* p = particules[i];
+
+        // Sécurité OpenMP : index toujours contigu, même après absorption.
+        p->setIndexUnivers(i);
+
         cellule* c = place_particule_dans_cellule(p);
-        if (c->getParticules().size() == 1){ // == 1 pour éviter les doublons dans cellules_occupees
-            cellules_occupees.push_back(c);}
+
+        if (c->getParticules().size() == 1) {
+            cellules_occupees.push_back(c);
+        }
     }
 }
 
@@ -996,8 +1008,8 @@ void univers::calcule_forces() {
                 if (v == c) {
                     for (size_t i = 0; i < parts.size(); ++i) {
                         particule* pi = parts[i];
-                        const int idi = pi->getId();
-
+                        //const int idi = pi->getId(); // Il faut que les particules soient contigues 
+                        const int idi = pi->getIndexUnivers(); // On utilise l'index univers qui est mis à jour à chaque évolution, ainsi même après absorption, les indices sont contigus et cohérents avec le buffer de forces
                         const vecteur& posi = pi->getPosition();
                         const double xi = posi.getX();
                         const double yi = posi.getY();
@@ -1005,7 +1017,8 @@ void univers::calcule_forces() {
 
                         for (size_t j = i + 1; j < parts.size(); ++j) {
                             particule* pj = parts[j];
-                            const int idj = pj->getId();
+                            //const int idj = pj->getId();
+                            const int idj = pj->getIndexUnivers();
 
                             const vecteur& posj = pj->getPosition();
 
@@ -1024,7 +1037,8 @@ void univers::calcule_forces() {
                             const double fyi = ry * coeff_force;
                             const double fzi = rz * coeff_force;
 
-                            //
+                            /* chaque buffer est divié en nb_threads sections de N cases (N = nombre de particules), ainsi chaque
+                             thread écrit dans sa propre section pour éviter les conflits d'écriture*/
                             omp_fx[base + idi] += fxi;
                             omp_fy[base + idi] += fyi;
                             omp_fz[base + idi] += fzi;
@@ -1036,15 +1050,16 @@ void univers::calcule_forces() {
                     }
                 } else {
                     for (particule* pi : parts) {
-                        const int idi = pi->getId();
-
+                        //const int idi = pi->getId();
+                        const int idi = pi->getIndexUnivers();
                         const vecteur& posi = pi->getPosition();
                         const double xi = posi.getX();
                         const double yi = posi.getY();
                         const double zi = posi.getZ();
 
                         for (particule* pj : vois) {
-                            const int idj = pj->getId();
+                            //const int idj = pj->getId();
+                            const int idj = pj->getIndexUnivers();
 
                             const vecteur& posj = pj->getPosition();
 
@@ -1173,14 +1188,21 @@ void univers::prepare_omp_force_buffers() {
         omp_threads_alloc = nb_threads;
         omp_particles_alloc = N;
 
-        omp_fx.resize(static_cast<size_t>(nb_threads) * N);
-        omp_fy.resize(static_cast<size_t>(nb_threads) * N);
-        omp_fz.resize(static_cast<size_t>(nb_threads) * N);
+        const size_t total = static_cast<size_t>(nb_threads) * N;
+
+        omp_fx.resize(total);
+        omp_fy.resize(total);
+        omp_fz.resize(total);
     }
 
-    std::fill(omp_fx.begin(), omp_fx.end(), 0.0);
-    std::fill(omp_fy.begin(), omp_fy.end(), 0.0);
-    std::fill(omp_fz.begin(), omp_fz.end(), 0.0);
+    const size_t total = static_cast<size_t>(omp_threads_alloc) * omp_particles_alloc;
+
+    // Initialisation des buffers à zéro.
+    for (long long i = 0; i < static_cast<long long>(total); ++i) {
+        omp_fx[i] = 0.0;
+        omp_fy[i] = 0.0;
+        omp_fz[i] = 0.0;
+    }
 }
 
 /** @brief Applique le potentiel de mur à toutes les particules.

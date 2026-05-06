@@ -9,6 +9,8 @@ add_library(particules
     output_paths.cxx
 )
 
+target_link_libraries(particules PUBLIC OpenMP::OpenMP_CXX)
+
 # Créer l'exécutable principal de la simulation
 add_executable(simu
     main.cxx

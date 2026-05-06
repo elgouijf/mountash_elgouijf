@@ -8,6 +8,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # =====================
+# OpenMP
+# Nécessaire pour utiliser #pragma omp parallel for dans le code C++.
+# Les flags de compilation/link sont propagés aux targets qui linkent OpenMP::OpenMP_CXX.
+# =====================
+find_package(OpenMP REQUIRED)
+
+# =====================
 # Flags de compilation
 # -O3           : optimisations maximales
 # -march=native : instructions SIMD spécifiques au CPU (AVX2, SSE4, etc.)

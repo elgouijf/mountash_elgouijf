@@ -101,6 +101,15 @@ class univers {
         /** @brief Indique si aucune condition limite n'est appliquée. */
         bool aucune_cond_limite = false;
 
+        std::vector<double> omp_fx;
+        std::vector<double> omp_fy;
+        std::vector<double> omp_fz;
+
+        int omp_threads_alloc = 0;
+        int omp_particles_alloc = 0;
+
+        void prepare_omp_force_buffers();
+
         
 
     public:
@@ -201,6 +210,8 @@ class univers {
          * courante et dans ses voisines, avec une coupure à la distance r_cut.
          */
         void calcule_forces();
+
+        void calcule_forces_sequentiel();
 
         /**
          * @brief Vide toutes les cellules de l'univers.

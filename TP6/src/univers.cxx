@@ -951,7 +951,152 @@ void univers::limite_vitesses(int N1, int N2) {
  *
  * La force utilisée correspond à une interaction de type Lennard-Jones.
  */
-void univers::calcule_forces(){
+void univers::calcule_forces() {
+    const int N = static_cast<int>(particules.size());
+    if (N == 0) return; // pas de particule, pas de force à calculer
+
+    const int nb_threads = omp_get_max_threads(); // nombre de threads disponibles
+
+    // Pour les petits systems ou peu de cellules occupées, le parallélisme peut ne être rentable (reste à vérifier)
+    if (nb_threads <= 1 || N < 6000 || cellules_occupees.size() < 4 * static_cast<size_t>(nb_threads)) {
+        calcule_forces_sequentiel();
+        return;
+    }
+
+    prepare_omp_force_buffers(); // alloue et initialise les buffers de forces pour OpenMP
+
+    const double r_cut2 = r_cut * r_cut;
+    const double sigma2 = sigma * sigma;
+    const double coeff = 24.0 * eps;
+
+    const int nb_cellules_occ = static_cast<int>(cellules_occupees.size()); // pas besoin de consulter toutes les cellules, seulement celles qui sont occupées
+
+    #pragma omp parallel
+    {
+        const int tid = omp_get_thread_num(); // identifiant du thread courant
+        const size_t base = static_cast<size_t>(tid) * N; // chaque thread écrit dans sa propre section du buffer de forces pour éviter 
+                                                         // les conflits d'écriture et avec un base de N*tid, on est sur qu'il y a pas 
+                                                         // des chauvauchements entre les threads car chacun a N (nobre de particules) cases pour lui dans le buffer
+
+
+        /* Ici, c'est beaucoup plus intéressant de distribuer les tâches dynamiquement, en fait des cellules peuvent être
+         trop saturées alors que d'autres sont presque vides. Ainsi, mettre static divisera les cellules entre les threads
+         une fois pour toutes sont tenir en compte leur charge  non uniforme => des thread vont finir avant des aures et 
+         vont s'arreter, alors que avec (dynamic) chaque thread redemande un autre paquet une fois il a fini de traité celui d'avant.*/
+        /* 32 cellules par paquets est généralement un bon compromis, et ça vaut pas le coup de déterminer la meilleur taille pour chaque setting donné*/
+        #pragma omp for schedule(dynamic, 32)
+        for (int ci = 0; ci < nb_cellules_occ; ++ci) {
+            cellule* c = cellules_occupees[ci];
+            const auto& parts = c->getParticules();
+
+            for (const cellule* v : c->getVoisins()) {
+                const auto& vois = v->getParticules();
+                if (vois.empty()) continue;
+
+                if (v == c) {
+                    for (size_t i = 0; i < parts.size(); ++i) {
+                        particule* pi = parts[i];
+                        const int idi = pi->getId();
+
+                        const vecteur& posi = pi->getPosition();
+                        const double xi = posi.getX();
+                        const double yi = posi.getY();
+                        const double zi = posi.getZ();
+
+                        for (size_t j = i + 1; j < parts.size(); ++j) {
+                            particule* pj = parts[j];
+                            const int idj = pj->getId();
+
+                            const vecteur& posj = pj->getPosition();
+
+                            const double rx = posj.getX() - xi;
+                            const double ry = posj.getY() - yi;
+                            const double rz = posj.getZ() - zi;
+
+                            const double dist2 = rx*rx + ry*ry + rz*rz + 1e-12;
+                            if (dist2 > r_cut2) continue;
+
+                            const double sr2 = sigma2 / dist2;
+                            const double sr6 = sr2 * sr2 * sr2;
+                            const double coeff_force = coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
+
+                            const double fxi = rx * coeff_force;
+                            const double fyi = ry * coeff_force;
+                            const double fzi = rz * coeff_force;
+
+                            //
+                            omp_fx[base + idi] += fxi;
+                            omp_fy[base + idi] += fyi;
+                            omp_fz[base + idi] += fzi;
+
+                            omp_fx[base + idj] -= fxi;
+                            omp_fy[base + idj] -= fyi;
+                            omp_fz[base + idj] -= fzi;
+                        }
+                    }
+                } else {
+                    for (particule* pi : parts) {
+                        const int idi = pi->getId();
+
+                        const vecteur& posi = pi->getPosition();
+                        const double xi = posi.getX();
+                        const double yi = posi.getY();
+                        const double zi = posi.getZ();
+
+                        for (particule* pj : vois) {
+                            const int idj = pj->getId();
+
+                            const vecteur& posj = pj->getPosition();
+
+                            const double rx = posj.getX() - xi;
+                            const double ry = posj.getY() - yi;
+                            const double rz = posj.getZ() - zi;
+
+                            const double dist2 = rx*rx + ry*ry + rz*rz + 1e-12;
+                            if (dist2 > r_cut2) continue;
+
+                            const double sr2 = sigma2 / dist2;
+                            const double sr6 = sr2 * sr2 * sr2;
+                            const double coeff_force = coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
+
+                            const double fxi = rx * coeff_force;
+                            const double fyi = ry * coeff_force;
+                            const double fzi = rz * coeff_force;
+                            /* chaque buffer est divié en nb_threads sections de N cases (N = nombre de particules), ainsi chaque
+                             thread écrit dans sa propre section pour éviter les conflits d'écriture*/
+                            omp_fx[base + idi] += fxi;
+                            omp_fy[base + idi] += fyi;
+                            omp_fz[base + idi] += fzi;
+
+                            omp_fx[base + idj] -= fxi;
+                            omp_fy[base + idj] -= fyi;
+                            omp_fz[base + idj] -= fzi;
+                        }
+                    }
+                }
+            }
+        }
+        /*Ici on parcoure le buffer de forces pour sommer les forces de chaque particule en déterminant les threads correspondants */
+        #pragma omp for schedule(static)
+        for (int i = 0; i < N; ++i) {
+            double sx = 0.0;
+            double sy = 0.0;
+            double sz = 0.0;
+
+            for (int t = 0; t < nb_threads; ++t) {
+                const size_t idx = static_cast<size_t>(t) * N + i;
+                sx += omp_fx[idx];
+                sy += omp_fy[idx];
+                sz += omp_fz[idx];
+            }
+
+            particules[i]->ajouterForce(sx, sy, sz);
+        }
+    }
+}
+
+
+void univers::calcule_forces_sequentiel(){
     const double r_cut2 = r_cut * r_cut;
     const double sigma2 = sigma * sigma;
     const double coeff = 24.0 * this->eps;
@@ -1016,6 +1161,27 @@ void univers::calcule_forces(){
     }
 }
 
+void univers::prepare_omp_force_buffers() {
+    const int nb_threads = omp_get_max_threads();
+    const int N = static_cast<int>(particules.size());
+
+    const bool need_resize =
+        nb_threads != omp_threads_alloc ||
+        N != omp_particles_alloc;
+
+    if (need_resize) {
+        omp_threads_alloc = nb_threads;
+        omp_particles_alloc = N;
+
+        omp_fx.resize(static_cast<size_t>(nb_threads) * N);
+        omp_fy.resize(static_cast<size_t>(nb_threads) * N);
+        omp_fz.resize(static_cast<size_t>(nb_threads) * N);
+    }
+
+    std::fill(omp_fx.begin(), omp_fx.end(), 0.0);
+    std::fill(omp_fy.begin(), omp_fy.end(), 0.0);
+    std::fill(omp_fz.begin(), omp_fz.end(), 0.0);
+}
 
 /** @brief Applique le potentiel de mur à toutes les particules.
  * @param u Univers auquel appliquer le potentiel de mur.

@@ -1,9 +1,0 @@
-<map id="univers::energie_cinetique" name="univers::energie_cinetique">
-<area shape="rect" id="Node000001" title="Calcule l&#39;énergie cinétique totale de l&#39;univers." alt="" coords="260,55,455,80"/>
-<area shape="rect" id="Node000002" href="$classunivers.html#a6a92379dcbcd9888638c82522f978776" title="Calcule l&#39;énergie mécanique totale de l&#39;univers." alt="" coords="5,5,212,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="279,55,173,33,174,28,280,49"/>
-<area shape="rect" id="Node000003" href="$classunivers.html#a9a2a2edce444f174034595041997d9d1" title="Limite les vitesses des particules." alt="" coords="20,55,197,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="246,70,198,70,198,65,246,65"/>
-<area shape="rect" id="Node000004" href="$test__univers_8cxx.html#aa1416712d5971b056ffc5b04a1f4a052" title="Vérifie le calcul de l&#39;énergie cinétique totale." alt="" coords="81,104,136,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="280,85,137,114,136,109,279,80"/>
-</map>

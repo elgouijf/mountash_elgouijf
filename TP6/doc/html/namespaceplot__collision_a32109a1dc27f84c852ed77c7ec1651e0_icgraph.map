@@ -1,6 +1,0 @@
-<map id="plot_collision.load_frames" name="plot_collision.load_frames">
-<area shape="rect" id="Node000001" title=" " alt="" coords="199,22,339,62"/>
-<area shape="rect" id="Node000002" href="$namespaceplot__collision.html#a9c8cb326b9a1471f95e856981fcc32d2" title=" " alt="" coords="5,29,151,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,45,151,45,151,39,185,39"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="112,19,102,11,78,8,58,10,47,15,45,20,51,28,47,31,40,21,44,11,57,5,78,3,104,6,115,15"/>
-</map>

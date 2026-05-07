@@ -1,9 +1,0 @@
-<map id="univers::getNumParticules" name="univers::getNumParticules">
-<area shape="rect" id="Node000001" title="Retourne le nombre de particules." alt="" coords="108,55,301,80"/>
-<area shape="rect" id="Node000002" href="$test__univers_8cxx.html#ac5c47fdf2531aa5c26263071d9fbe91c" title="Vérifie qu&#39;une particule ajoutée est bien comptée et stockée." alt="" coords="5,5,60,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,53,59,28,61,23,147,48"/>
-<area shape="rect" id="Node000003" href="$test__univers_8cxx.html#a6857feb62208ae245bf5859a942c593b" title="Vérifie qu&#39;un univers paramétré est correctement initialisé." alt="" coords="5,55,60,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="94,70,60,70,60,65,94,65"/>
-<area shape="rect" id="Node000004" href="$test__univers_8cxx.html#a25b00c86e042764e08950a583bdc5415" title="Vérifie que le constructeur par défaut initialise correctement l&#39;univers." alt="" coords="5,104,60,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="147,86,61,112,59,107,146,81"/>
-</map>

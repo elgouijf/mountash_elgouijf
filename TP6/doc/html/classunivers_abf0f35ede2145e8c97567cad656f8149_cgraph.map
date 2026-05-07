@@ -1,5 +1,0 @@
-<map id="univers::vide_cellules" name="univers::vide_cellules">
-<area shape="rect" id="Node000001" title="Vide toutes les cellules de l&#39;univers." alt="" coords="5,5,168,31"/>
-<area shape="rect" id="Node000002" href="$classcellule.html#a0800f585671e7f723b62cacada5606d8" title="Vide la cellule de toutes ses particules." alt="" coords="216,5,317,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,15,202,15,202,21,168,21"/>
-</map>

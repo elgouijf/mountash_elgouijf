@@ -1,9 +1,0 @@
-<map id="univers::energie_cinetique" name="univers::energie_cinetique">
-<area shape="rect" id="Node000001" title="Calcule l&#39;énergie cinétique totale de l&#39;univers." alt="" coords="5,55,200,80"/>
-<area shape="rect" id="Node000002" href="$classvecteur.html#aa59acba809cb1e0398d772973a342bbf" title="Retourne la composante x." alt="" coords="248,5,357,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,52,237,31,238,37,155,57"/>
-<area shape="rect" id="Node000003" href="$classvecteur.html#a5cf01d249fe3de81d76ee41161ab26fb" title="Retourne la composante y." alt="" coords="249,55,357,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="200,65,235,65,235,70,200,70"/>
-<area shape="rect" id="Node000004" href="$classvecteur.html#af0fe27eaf47698adcbe1b964c58bac59" title="Retourne la composante z." alt="" coords="248,104,357,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="155,77,238,98,237,103,154,83"/>
-</map>

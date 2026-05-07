@@ -1,9 +1,0 @@
-<map id="particule::setForceOld" name="particule::setForceOld">
-<area shape="rect" id="Node000001" title="Modifie l&#39;ancienne force." alt="" coords="108,55,272,80"/>
-<area shape="rect" id="Node000002" href="$test__particule_8cxx.html#a6d8b9be4512642eb01a5bd71727d53d2" title="Vérifie la mise à jour de vitesse avec la seconde étape de Störmer&#45;Verlet." alt="" coords="5,5,60,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,53,59,29,61,24,137,48"/>
-<area shape="rect" id="Node000003" href="$test__particule_8cxx.html#afcfaee0361e741b80ff7207241947707" title="Vérifie qu&#39;une particule de masse nulle ne change pas lors de la mise à jour de vitesse Verlet." alt="" coords="5,55,60,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="94,70,60,70,60,65,94,65"/>
-<area shape="rect" id="Node000004" href="$test__particule_8cxx.html#a8cddccdbde5b908cec600e8294b025a0" title="Vérifie que les setters modifient correctement les attributs dynamiques de la particule." alt="" coords="5,104,60,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="137,87,61,111,59,106,135,82"/>
-</map>

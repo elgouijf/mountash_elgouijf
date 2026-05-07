@@ -1,7 +1,0 @@
-<map id="univers::debug_cellules" name="univers::debug_cellules">
-<area shape="rect" id="Node000001" title="Affiche des informations de debug sur les cellules." alt="" coords="5,31,180,56"/>
-<area shape="rect" id="Node000002" href="$classvecteur.html#aa59acba809cb1e0398d772973a342bbf" title="Retourne la composante x." alt="" coords="228,5,337,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,29,214,24,215,30,181,34"/>
-<area shape="rect" id="Node000003" href="$classvecteur.html#a5cf01d249fe3de81d76ee41161ab26fb" title="Retourne la composante y." alt="" coords="229,55,337,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,52,215,56,215,61,180,57"/>
-</map>

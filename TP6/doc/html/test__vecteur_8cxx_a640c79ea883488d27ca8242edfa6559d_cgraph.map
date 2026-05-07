@@ -1,9 +1,0 @@
-<map id="TEST" name="TEST">
-<area shape="rect" id="Node000001" title="Vérifie l&#39;accès en lecture aux composantes via les méthodes get()." alt="" coords="5,55,60,80"/>
-<area shape="rect" id="Node000002" href="$classvecteur.html#aa59acba809cb1e0398d772973a342bbf" title="Retourne la composante x." alt="" coords="108,5,217,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="59,55,114,33,116,38,61,60"/>
-<area shape="rect" id="Node000003" href="$classvecteur.html#a5cf01d249fe3de81d76ee41161ab26fb" title="Retourne la composante y." alt="" coords="109,55,217,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="60,65,95,65,95,70,60,70"/>
-<area shape="rect" id="Node000004" href="$classvecteur.html#af0fe27eaf47698adcbe1b964c58bac59" title="Retourne la composante z." alt="" coords="108,104,217,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="61,75,116,96,114,101,59,80"/>
-</map>

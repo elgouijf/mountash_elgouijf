@@ -1,9 +1,0 @@
-<map id="particule::getId" name="particule::getId">
-<area shape="rect" id="Node000001" title="Retourne l&#39;identifiant logique de la particule." alt="" coords="152,55,272,80"/>
-<area shape="rect" id="Node000002" href="$particule_8cxx.html#ab1f68ab39a13524725be9c57d75c9491" title="Affiche les principales caractéristiques d&#39;une particule." alt="" coords="5,5,104,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,53,95,33,97,28,159,48"/>
-<area shape="rect" id="Node000003" href="$test__particule_8cxx.html#a01569608acfa8709389f3d0966469858" title="Vérifie que le constructeur avec paramètres initialise correctement les attributs physiques." alt="" coords="27,55,82,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="138,70,82,70,82,65,138,65"/>
-<area shape="rect" id="Node000004" href="$test__particule_8cxx.html#a9f536c2911d1648ffae4c0b60dfe60ce" title="Vérifie que le constructeur par défaut initialise correctement une particule nulle." alt="" coords="27,104,82,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="159,87,83,111,81,106,157,82"/>
-</map>

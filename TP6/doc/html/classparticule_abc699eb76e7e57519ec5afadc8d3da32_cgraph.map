@@ -1,9 +1,0 @@
-<map id="particule::verifie_etat_num" name="particule::verifie_etat_num">
-<area shape="rect" id="Node000001" title="Vérifie la validité numérique de l&#39;état de la particule." alt="" coords="5,47,133,87"/>
-<area shape="rect" id="Node000002" href="$classvecteur.html#aa59acba809cb1e0398d772973a342bbf" title="Retourne la composante x." alt="" coords="181,5,291,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,46,179,32,180,37,134,51"/>
-<area shape="rect" id="Node000003" href="$classvecteur.html#a5cf01d249fe3de81d76ee41161ab26fb" title="Retourne la composante y." alt="" coords="182,55,290,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="134,65,168,65,168,70,134,70"/>
-<area shape="rect" id="Node000004" href="$classvecteur.html#af0fe27eaf47698adcbe1b964c58bac59" title="Retourne la composante z." alt="" coords="181,104,291,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="134,84,180,97,179,103,133,89"/>
-</map>

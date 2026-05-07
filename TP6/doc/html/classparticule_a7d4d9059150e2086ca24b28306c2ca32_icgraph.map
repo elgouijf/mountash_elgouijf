@@ -1,7 +1,0 @@
-<map id="particule::evolue" name="particule::evolue">
-<area shape="rect" id="Node000001" title="Fait évoluer la particule avec un schéma simple." alt="" coords="108,31,239,56"/>
-<area shape="rect" id="Node000002" href="$test__particule_8cxx.html#aa107b666a80ff8052bebeab4255a2347" title="Vérifie l&#39;évolution simple d&#39;une particule sous l&#39;effet d&#39;une force constante." alt="" coords="5,5,60,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,32,60,25,61,20,95,26"/>
-<area shape="rect" id="Node000003" href="$test__particule_8cxx.html#aae38b1e3a19db5392c4c9244377c387f" title="Vérifie qu&#39;une particule de masse nulle n&#39;évolue pas avec la méthode simple." alt="" coords="5,55,60,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="95,59,61,65,60,60,94,54"/>
-</map>

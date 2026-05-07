@@ -1,7 +1,0 @@
-<map id="TEST" name="TEST">
-<area shape="rect" id="Node000001" title="Vérifie qu&#39;une particule peut être ajoutée correctement dans une cellule." alt="" coords="5,31,60,56"/>
-<area shape="rect" id="Node000002" href="$classcellule.html#ae531af862066fad38d9a3a9aa2f73b9c" title="Ajoute une particule dans la cellule." alt="" coords="108,5,287,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="60,37,101,30,102,35,60,42"/>
-<area shape="rect" id="Node000003" href="$classcellule.html#aec6b3258611bdf36294e6b5b9ec9a796" title="Retourne les particules contenues dans la cellule." alt="" coords="119,55,276,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="60,45,106,51,105,57,60,50"/>
-</map>

@@ -1,7 +1,0 @@
-<map id="univers::getDim" name="univers::getDim">
-<area shape="rect" id="Node000001" title="Retourne la dimension de l&#39;univers." alt="" coords="108,31,235,56"/>
-<area shape="rect" id="Node000002" href="$test__univers_8cxx.html#a6857feb62208ae245bf5859a942c593b" title="Vérifie qu&#39;un univers paramétré est correctement initialisé." alt="" coords="5,5,60,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,32,60,26,61,20,95,27"/>
-<area shape="rect" id="Node000003" href="$test__univers_8cxx.html#a25b00c86e042764e08950a583bdc5415" title="Vérifie que le constructeur par défaut initialise correctement l&#39;univers." alt="" coords="5,55,60,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="95,59,61,65,60,60,94,54"/>
-</map>

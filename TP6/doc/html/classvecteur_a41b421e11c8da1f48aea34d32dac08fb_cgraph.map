@@ -1,5 +1,0 @@
-<map id="vecteur::norme" name="vecteur::norme">
-<area shape="rect" id="Node000001" title="Calcule la norme euclidienne du vecteur." alt="" coords="5,5,127,31"/>
-<area shape="rect" id="Node000002" href="$classvecteur.html#a75c4fb1f0c4d2345e67bc439522faaf8" title="Calcule la norme euclidienne au carré." alt="" coords="175,5,304,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,15,161,15,161,21,127,21"/>
-</map>

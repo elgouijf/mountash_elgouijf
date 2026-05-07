@@ -1,9 +1,0 @@
-<map id="univers::getCellules" name="univers::getCellules">
-<area shape="rect" id="Node000001" title="Retourne la grille des cellules." alt="" coords="108,55,259,80"/>
-<area shape="rect" id="Node000002" href="$test__univers_8cxx.html#a8b48ce58cce5f20b5a2a6de2bdd46409" title="Vérifie qu&#39;une particule est bien placée dans une cellule lors de son ajout." alt="" coords="5,5,60,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,53,59,29,61,24,132,48"/>
-<area shape="rect" id="Node000003" href="$test__univers_8cxx.html#a6857feb62208ae245bf5859a942c593b" title="Vérifie qu&#39;un univers paramétré est correctement initialisé." alt="" coords="5,55,60,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="94,70,60,70,60,65,94,65"/>
-<area shape="rect" id="Node000004" href="$test__univers_8cxx.html#a25b00c86e042764e08950a583bdc5415" title="Vérifie que le constructeur par défaut initialise correctement l&#39;univers." alt="" coords="5,104,60,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="132,87,61,110,59,105,130,82"/>
-</map>

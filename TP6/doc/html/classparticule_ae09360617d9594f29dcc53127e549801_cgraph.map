@@ -1,5 +1,0 @@
-<map id="particule::ajouterForce" name="particule::ajouterForce">
-<area shape="rect" id="Node000001" title="Ajoute directement des composantes de force." alt="" coords="5,5,173,31"/>
-<area shape="rect" id="Node000002" href="$classvecteur.html#ab29fe46c359afbf1574947239079e19c" title="Ajoute directement des composantes au vecteur courant." alt="" coords="221,5,341,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,15,207,15,207,21,174,21"/>
-</map>

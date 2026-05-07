@@ -1,9 +1,0 @@
-<map id="particule::getType" name="particule::getType">
-<area shape="rect" id="Node000001" title="Retourne le type de la particule." alt="" coords="152,55,291,80"/>
-<area shape="rect" id="Node000002" href="$particule_8cxx.html#ab1f68ab39a13524725be9c57d75c9491" title="Affiche les principales caractéristiques d&#39;une particule." alt="" coords="5,5,104,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,53,98,33,99,28,166,48"/>
-<area shape="rect" id="Node000003" href="$test__particule_8cxx.html#a01569608acfa8709389f3d0966469858" title="Vérifie que le constructeur avec paramètres initialise correctement les attributs physiques." alt="" coords="27,55,82,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="138,70,82,70,82,65,138,65"/>
-<area shape="rect" id="Node000004" href="$test__particule_8cxx.html#a9f536c2911d1648ffae4c0b60dfe60ce" title="Vérifie que le constructeur par défaut initialise correctement une particule nulle." alt="" coords="27,104,82,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="166,86,83,111,81,106,164,81"/>
-</map>

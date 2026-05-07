@@ -1,5 +1,0 @@
-<map id="univers::energie_potentielle" name="univers::energie_potentielle">
-<area shape="rect" id="Node000001" title="Calcule l&#39;énergie potentielle totale de l&#39;univers." alt="" coords="260,5,464,31"/>
-<area shape="rect" id="Node000002" href="$classunivers.html#a6a92379dcbcd9888638c82522f978776" title="Calcule l&#39;énergie mécanique totale de l&#39;univers." alt="" coords="5,5,212,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="246,21,212,21,212,15,246,15"/>
-</map>

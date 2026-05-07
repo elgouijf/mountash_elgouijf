@@ -1,9 +1,0 @@
-<map id="univers::applique_conditions_limites" name="univers::applique_conditions_limites">
-<area shape="rect" id="Node000001" title="Applique les conditions aux limites à toutes les particules." alt="" coords="349,23,557,63"/>
-<area shape="rect" id="Node000002" href="$classunivers.html#a23e2a5ae9b01ef2b08756f12799bf830" title="Fait évoluer toutes les particules sur un pas de temps." alt="" coords="108,31,301,56"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="336,46,301,46,301,41,336,41"/>
-<area shape="rect" id="Node000003" href="$main_8cxx.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title="Programme principal de simulation 2D." alt="" coords="5,5,60,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="104,31,60,25,61,19,105,26"/>
-<area shape="rect" id="Node000004" href="$test__univers_8cxx.html#a65bfcd920db2c644d6c1d84fa73f330a" title="Vérifie que l&#39;évolution globale modifie bien l&#39;état des particules." alt="" coords="5,55,60,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="101,61,60,66,60,61,100,55"/>
-</map>

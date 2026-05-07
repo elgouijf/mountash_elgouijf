@@ -1,6 +1,0 @@
-<map id="plot_ur.load_data" name="plot_ur.load_data">
-<area shape="rect" id="Node000001" title=" " alt="" coords="156,29,291,55"/>
-<area shape="rect" id="Node000002" href="$namespaceplot__ur.html#a1e315b1c9e51e6b1ba16405e4858369c" title=" " alt="" coords="5,29,108,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,45,108,45,108,39,142,39"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="86,19,77,11,57,8,39,10,30,15,28,20,33,28,29,31,23,21,26,11,38,5,57,3,79,6,89,15"/>
-</map>

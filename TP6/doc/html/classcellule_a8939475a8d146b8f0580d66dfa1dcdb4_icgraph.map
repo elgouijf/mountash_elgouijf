@@ -1,9 +1,0 @@
-<map id="cellule::ajoute_voisin" name="cellule::ajoute_voisin">
-<area shape="rect" id="Node000001" title="Ajoute une cellule voisine à la liste des voisins." alt="" coords="108,55,268,80"/>
-<area shape="rect" id="Node000002" href="$test__cellule_8cxx.html#aebd3f3abd3834f781316bc7d0f853830" title="Vérifie que plusieurs voisins peuvent être ajoutés correctement." alt="" coords="5,5,60,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,53,59,29,61,24,135,48"/>
-<area shape="rect" id="Node000003" href="$test__cellule_8cxx.html#a3310b2aefbe22dfb9dce5bce36b68f6b" title="Vérifie qu&#39;une cellule voisine peut être ajoutée correctement." alt="" coords="5,55,60,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="94,70,60,70,60,65,94,65"/>
-<area shape="rect" id="Node000004" href="$test__cellule_8cxx.html#ab65adac53a9a41ff477150efe1d5fd92" title="Vérifie que le getter non constant permet bien d&#39;accéder au conteneur de voisins." alt="" coords="5,104,60,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="135,87,61,111,59,106,134,82"/>
-</map>

@@ -1,9 +1,0 @@
-<map id="TEST" name="TEST">
-<area shape="rect" id="Node000001" title="Vérifie l&#39;ajout de force par vecteur." alt="" coords="5,31,60,56"/>
-<area shape="rect" id="Node000002" href="$classparticule.html#ae09360617d9594f29dcc53127e549801" title="Ajoute directement des composantes de force." alt="" coords="108,5,276,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="60,36,98,30,99,36,61,42"/>
-<area shape="rect" id="Node000004" href="$classparticule.html#a52af27dba92ea528c1c3fba21d73c71b" title="Retourne la force actuelle appliquée à la particule." alt="" coords="121,55,263,80"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="61,45,107,52,106,57,60,50"/>
-<area shape="rect" id="Node000003" href="$classvecteur.html#ab29fe46c359afbf1574947239079e19c" title="Ajoute directement des composantes au vecteur courant." alt="" coords="324,5,444,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="276,15,310,15,310,21,276,21"/>
-</map>

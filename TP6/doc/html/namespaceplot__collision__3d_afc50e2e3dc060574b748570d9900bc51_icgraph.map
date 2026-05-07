@@ -1,6 +1,0 @@
-<map id="plot_collision_3d.create_animation" name="plot_collision_3d.create_animation">
-<area shape="rect" id="Node000001" title=" " alt="" coords="221,22,397,62"/>
-<area shape="rect" id="Node000002" href="$namespaceplot__collision__3d.html#a1c0f56ab490ecc4b514f0ac9d1cdd82b" title=" " alt="" coords="5,29,173,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,45,174,45,174,39,207,39"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="129,20,118,11,89,8,66,10,54,15,51,20,58,28,54,31,46,21,50,11,65,5,89,3,120,6,132,15"/>
-</map>

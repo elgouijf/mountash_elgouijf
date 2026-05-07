@@ -1,8 +1,0 @@
-<map id="plot_collision_3d.main" name="plot_collision_3d.main">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,45,173,70"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="54,46,46,36,50,26,65,20,89,18,120,22,132,31,129,35,118,27,89,23,66,25,54,30,51,36,58,43"/>
-<area shape="rect" id="Node000002" href="$namespaceplot__collision__3d.html#afc50e2e3dc060574b748570d9900bc51" title=" " alt="" coords="221,5,397,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,43,207,37,208,43,174,48"/>
-<area shape="rect" id="Node000003" href="$namespaceplot__collision__3d.html#a23cd9c6a51d9405672a833314696d79d" title=" " alt="" coords="228,69,391,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,67,215,73,214,78,173,72"/>
-</map>

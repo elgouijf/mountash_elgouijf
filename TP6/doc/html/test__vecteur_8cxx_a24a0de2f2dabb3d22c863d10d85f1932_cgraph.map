@@ -1,7 +1,0 @@
-<map id="TEST" name="TEST">
-<area shape="rect" id="Node000001" title="Vérifie le calcul correct de la norme euclidienne." alt="" coords="5,5,60,31"/>
-<area shape="rect" id="Node000002" href="$classvecteur.html#a41b421e11c8da1f48aea34d32dac08fb" title="Calcule la norme euclidienne du vecteur." alt="" coords="108,5,229,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="60,15,94,15,94,21,60,21"/>
-<area shape="rect" id="Node000003" href="$classvecteur.html#a75c4fb1f0c4d2345e67bc439522faaf8" title="Calcule la norme euclidienne au carré." alt="" coords="277,5,407,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="230,15,264,15,264,21,230,21"/>
-</map>

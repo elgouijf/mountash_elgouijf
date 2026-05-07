@@ -68,7 +68,7 @@ Les sorties sont générées dans des répertoires dédiés à la racine du proj
 | `frames/` | Sorties texte |
 | `vtk_frames/` | Sorties VTK Legacy |
 | `vtu_frames/` | Sorties VTU/XML |
-| `energy/` | Énergie cinétique, potentielle et totale au cours du temps |
+| `energy/` | Énergie cinétique avec un .csv au cours du temps |
 
 ### Scripts Python (`src/python_plot/`)
 

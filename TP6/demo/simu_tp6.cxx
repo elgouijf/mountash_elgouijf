@@ -106,6 +106,8 @@ int main() {
         ConditionLimite::Reflexive  // zmax
     );
 
+    uni.setUtiliserListeVerlet(true, 0.5);
+
     std::cout << "\nConditions limites appliquees :\n";
     uni.afficherConditionsLimites();
     int id = 0;

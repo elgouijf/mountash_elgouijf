@@ -110,6 +110,24 @@ class univers {
 
         void prepare_omp_force_buffers();
 
+        bool utiliser_liste_verlet = false;
+        bool verlet_valide = false;
+
+        double verlet_skin = 0.5;
+
+        std::vector<std::pair<int, int>> paires_verlet;
+
+        std::vector<double> verlet_x0;
+        std::vector<double> verlet_y0;
+        std::vector<double> verlet_z0;
+
+        void construire_liste_verlet();
+        bool doit_reconstruire_liste_verlet() const;
+
+        void calcule_forces_verlet_omp();
+        void calcule_forces_verlet_omp_2d();
+        void calcule_forces_verlet_omp_3d();
+
         
 
     public:
@@ -203,16 +221,16 @@ class univers {
          */
         void evolue_particules(double dt);
 
-        /**
-         * @brief Calcule les forces exercées sur toutes les particules.
-         *
-         * Les interactions sont limitées aux particules situées dans la cellule
-         * courante et dans ses voisines, avec une coupure à la distance r_cut.
-         */
-        void calcule_forces();
-
+        
         void calcule_forces_sequentiel();
+        void calcule_forces_sequentiel_2d();
+        void calcule_forces_sequentiel_3d();
 
+        void calcule_forces();
+        void calcule_forces_omp_2d();
+        void calcule_forces_omp_3d();
+
+        
         /**
          * @brief Vide toutes les cellules de l'univers.
          */
@@ -331,10 +349,12 @@ class univers {
 
 
         /**
-         * @brief Applique les conditions aux limites à toutes les particules.
-         * @return true si au moins une particule a été supprimée, false sinon.
-         */
-        void applique_conditions_limites();
+        * @brief Applique les conditions aux limites à toutes les particules.
+        *
+        * @return true si au moins une particule a été modifiée ou supprimée,
+        *         false sinon.
+        */
+        bool applique_conditions_limites();
         
         /** @brief Applique les conditions aux limites à une particule donnée.
          * @param p Pointeur vers la particule.
@@ -375,6 +395,25 @@ class univers {
         void debug_cellules() const;
 
         void reserveParticules(size_t n);
+        
+        /**
+        * @brief Active ou désactive la liste de Verlet.
+        *
+        * La liste de Verlet permet de réutiliser une liste de paires candidates
+        * entre plusieurs pas de temps. Elle peut améliorer les performances lorsque
+        * le pas de temps est suffisamment petit devant le déplacement typique des
+        * particules.
+        *
+        * @param actif true pour activer la liste de Verlet.
+        * @param skin Marge ajoutée à r_cut pour construire la liste.
+        *
+        * @warning L'utilisateur doit choisir un skin cohérent avec le pas de temps :
+        * si dt est trop grand ou si les vitesses sont trop élevées, la liste sera
+        * reconstruite très souvent et peut devenir moins performante.
+        */
+        void setUtiliserListeVerlet(bool actif, double skin = 0.5);
+
+        
 };
 
 /**

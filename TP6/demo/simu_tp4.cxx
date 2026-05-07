@@ -119,6 +119,8 @@ int main(){
         ConditionLimite::Aucune
     );
 
+    uni.setUtiliserListeVerlet(true, 0.3); // petit skin, mais pour cette simu c'est suffisant
+
     int id = 0;
     double largeur_carre = 39 * dist_entre_particules;
     double largeur_rect = 159 * dist_entre_particules;
@@ -200,7 +202,7 @@ int main(){
             ecrire_energie(energy_file, frame, frame * dt, Ec, Ep, Em);
 
             std::cout << "Frame " << frame << "/" << num_frames
-                    << "  Em = " << Em << "\n";
+                    << "  Em = " << Em << "\n"; 
             //std::cout << "Frame " << frame << "/" << num_frames <<  "\n"; 
             
             

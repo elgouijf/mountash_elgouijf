@@ -186,6 +186,16 @@ univers::univers(const univers& other) {
     place_particules_dans_cellules();
 }
 
+/** @brief Active ou désactive l'utilisation de la liste de Verlet.
+ * @param actif true pour activer, false pour désactiver.
+ * @param skin Valeur du skin pour la liste de Verlet.
+ */
+void univers::setUtiliserListeVerlet(bool actif, double skin) {
+    utiliser_liste_verlet = actif;
+    verlet_skin = skin;
+    verlet_valide = false;
+}
+
 /**
  * @brief Opérateur d'affectation.
  * @param other L'objet à affecter.
@@ -399,25 +409,266 @@ void univers::ajoute_particule(particule* p) {
  */
 void univers::evolue_particules(double dt) {
 
-    for (particule* p : particules)
+    for (particule* p : particules) {
         p->avance_position_verlet(dt);
+    }
+    //place_particules_dans_cellules();
 
-    place_particules_dans_cellules();
+    //calcule_forces();
+    if (!utiliser_liste_verlet) {
+        place_particules_dans_cellules();
+    }
 
     calcule_forces();
 
-    if (!aucune_cond_limite && utiliser_potentiel_mur)
+    if (utiliser_potentiel_mur) {
         applique_potentiel_mur();
+    }
 
     applique_gravite();
 
-    for (particule* p : particules)
+    for (particule* p : particules) {
         p->avance_vitesse_verlet(dt);
+    }
 
-    if (!aucune_cond_limite)
-        applique_conditions_limites();
+    if (!aucune_cond_limite) {
+        const bool limites_ont_modifie = applique_conditions_limites();
+
+        if (limites_ont_modifie) {
+            verlet_valide = false;
+        }
+    }
 }
 
+
+bool univers::doit_reconstruire_liste_verlet() const {
+    if (!verlet_valide) return true;
+
+    const double seuil2 = 0.25 * verlet_skin * verlet_skin;
+
+    for (int i = 0; i < static_cast<int>(particules.size()); ++i) {
+        const vecteur& p = particules[i]->getPosition();
+
+        const double dx = p.getX() - verlet_x0[i];
+        const double dy = p.getY() - verlet_y0[i];
+        const double dz = p.getZ() - verlet_z0[i];
+
+        const double d2 = dx * dx + dy * dy + dz * dz;
+
+        if (d2 > seuil2) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void univers::construire_liste_verlet() {
+    paires_verlet.clear();
+
+    const int N = static_cast<int>(particules.size());
+
+    verlet_x0.resize(N);
+    verlet_y0.resize(N);
+    verlet_z0.resize(N);
+
+    const double r_list = r_cut + verlet_skin;
+    const double r_list2 = r_list * r_list;
+
+    const int n_layers = static_cast<int>(std::ceil(r_list / r_cut));
+
+    //paires_verlet.reserve(static_cast<size_t>(N) * 40);
+    const size_t reserve_visee =
+        static_cast<size_t>(N) * ((dim == 2) ? 40 : 100);
+
+    if (paires_verlet.capacity() < reserve_visee) {
+        paires_verlet.reserve(reserve_visee);
+    }
+    
+    if (dim == 2) {
+        const int nx = ncd[0];
+        const int ny = ncd[1];
+
+        for (int ix = 0; ix < nx; ++ix) {
+            for (int iy = 0; iy < ny; ++iy) {
+                const int idx = indice_cellule(ix, iy, 0);
+                cellule& c = cellules[idx];
+
+                const auto& parts = c.getParticules();
+                if (parts.empty()) continue;
+
+                for (int dx = -n_layers; dx <= n_layers; ++dx) {
+                    for (int dy = -n_layers; dy <= n_layers; ++dy) {
+                        const int jx = ix + dx;
+                        const int jy = iy + dy;
+
+                        if (jx < 0 || jx >= nx || jy < 0 || jy >= ny) continue;
+
+                        const int idx_voisin = indice_cellule(jx, jy, 0);
+                        if (idx_voisin < idx) continue;
+
+                        cellule& cv = cellules[idx_voisin];
+                        const auto& vois = cv.getParticules();
+                        if (vois.empty()) continue;
+
+                        if (idx_voisin == idx) {
+                            for (size_t a = 0; a < parts.size(); ++a) {
+                                particule* pi = parts[a];
+                                const int idi = pi->getIndexUnivers();
+
+                                const vecteur& posi = pi->getPosition();
+                                const double xi = posi.getX();
+                                const double yi = posi.getY();
+
+                                for (size_t b = a + 1; b < parts.size(); ++b) {
+                                    particule* pj = parts[b];
+                                    const int idj = pj->getIndexUnivers();
+
+                                    const vecteur& posj = pj->getPosition();
+
+                                    const double rx = posj.getX() - xi;
+                                    const double ry = posj.getY() - yi;
+                                    const double dist2 = rx * rx + ry * ry;
+
+                                    if (dist2 <= r_list2) {
+                                        paires_verlet.emplace_back(idi, idj);
+                                    }
+                                }
+                            }
+                        } else {
+                            for (particule* pi : parts) {
+                                const int idi = pi->getIndexUnivers();
+
+                                const vecteur& posi = pi->getPosition();
+                                const double xi = posi.getX();
+                                const double yi = posi.getY();
+
+                                for (particule* pj : vois) {
+                                    const int idj = pj->getIndexUnivers();
+
+                                    const vecteur& posj = pj->getPosition();
+
+                                    const double rx = posj.getX() - xi;
+                                    const double ry = posj.getY() - yi;
+                                    const double dist2 = rx * rx + ry * ry;
+
+                                    if (dist2 <= r_list2) {
+                                        paires_verlet.emplace_back(idi, idj);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    else if (dim == 3) {
+        const int nx = ncd[0];
+        const int ny = ncd[1];
+        const int nz = ncd[2];
+
+        for (int ix = 0; ix < nx; ++ix) {
+            for (int iy = 0; iy < ny; ++iy) {
+                for (int iz = 0; iz < nz; ++iz) {
+                    const int idx = indice_cellule(ix, iy, iz);
+                    cellule& c = cellules[idx];
+
+                    const auto& parts = c.getParticules();
+                    if (parts.empty()) continue;
+
+                    for (int dx = -n_layers; dx <= n_layers; ++dx) {
+                        for (int dy = -n_layers; dy <= n_layers; ++dy) {
+                            for (int dz = -n_layers; dz <= n_layers; ++dz) {
+                                const int jx = ix + dx;
+                                const int jy = iy + dy;
+                                const int jz = iz + dz;
+
+                                if (jx < 0 || jx >= nx ||
+                                    jy < 0 || jy >= ny ||
+                                    jz < 0 || jz >= nz) {
+                                    continue;
+                                }
+
+                                const int idx_voisin = indice_cellule(jx, jy, jz);
+                                if (idx_voisin < idx) continue;
+
+                                cellule& cv = cellules[idx_voisin];
+                                const auto& vois = cv.getParticules();
+                                if (vois.empty()) continue;
+
+                                if (idx_voisin == idx) {
+                                    for (size_t a = 0; a < parts.size(); ++a) {
+                                        particule* pi = parts[a];
+                                        const int idi = pi->getIndexUnivers();
+
+                                        const vecteur& posi = pi->getPosition();
+                                        const double xi = posi.getX();
+                                        const double yi = posi.getY();
+                                        const double zi = posi.getZ();
+
+                                        for (size_t b = a + 1; b < parts.size(); ++b) {
+                                            particule* pj = parts[b];
+                                            const int idj = pj->getIndexUnivers();
+
+                                            const vecteur& posj = pj->getPosition();
+
+                                            const double rx = posj.getX() - xi;
+                                            const double ry = posj.getY() - yi;
+                                            const double rz = posj.getZ() - zi;
+                                            const double dist2 =
+                                                rx * rx + ry * ry + rz * rz;
+
+                                            if (dist2 <= r_list2) {
+                                                paires_verlet.emplace_back(idi, idj);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    for (particule* pi : parts) {
+                                        const int idi = pi->getIndexUnivers();
+
+                                        const vecteur& posi = pi->getPosition();
+                                        const double xi = posi.getX();
+                                        const double yi = posi.getY();
+                                        const double zi = posi.getZ();
+
+                                        for (particule* pj : vois) {
+                                            const int idj = pj->getIndexUnivers();
+
+                                            const vecteur& posj = pj->getPosition();
+
+                                            const double rx = posj.getX() - xi;
+                                            const double ry = posj.getY() - yi;
+                                            const double rz = posj.getZ() - zi;
+                                            const double dist2 =
+                                                rx * rx + ry * ry + rz * rz;
+
+                                            if (dist2 <= r_list2) {
+                                                paires_verlet.emplace_back(idi, idj);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < N; ++i) {
+        const vecteur& p = particules[i]->getPosition();
+
+        verlet_x0[i] = p.getX();
+        verlet_y0[i] = p.getY();
+        verlet_z0[i] = p.getZ();
+    }
+
+    verlet_valide = true;
+}
 
 /** @brief Calcule l'énergie cinétique de l'univers.
  * @return Valeur de l'énergie cinétique.
@@ -766,7 +1017,9 @@ void univers::setConditionsLimites(ConditionLimite cond_xmin, ConditionLimite co
 
 
 /** @brief Applique les conditions aux limites à toutes les particules. */
-void univers::applique_conditions_limites() {
+bool univers::applique_conditions_limites() {
+    bool modification = false;
+
     const bool has_absorbante =
         condl_xmin == ConditionLimite::Absorbante ||
         condl_xmax == ConditionLimite::Absorbante ||
@@ -775,29 +1028,54 @@ void univers::applique_conditions_limites() {
         condl_zmin == ConditionLimite::Absorbante ||
         condl_zmax == ConditionLimite::Absorbante;
 
-    // Cas fréquent : aucune condition absorbante.
-    // On applique juste réflexion / périodique sans reconstruire le vecteur.
     if (!has_absorbante) {
         for (particule* p : particules) {
+            const vecteur& avant = p->getPosition();
+
+            const double x0 = avant.getX();
+            const double y0 = avant.getY();
+            const double z0 = avant.getZ();
+
             applique_conditions_limites_particule(p);
+
+            const vecteur& apres = p->getPosition();
+
+            if (apres.getX() != x0 || apres.getY() != y0 || apres.getZ() != z0) {
+                modification = true;
+            }
         }
-        return;
+
+        return modification;
     }
 
-    // Cas absorbant : certaines particules peuvent être supprimées.
     std::vector<particule*> survivantes;
     survivantes.reserve(particules.size());
 
     for (particule* p : particules) {
+        const vecteur& avant = p->getPosition();
+
+        const double x0 = avant.getX();
+        const double y0 = avant.getY();
+        const double z0 = avant.getZ();
+
         if (applique_conditions_limites_particule(p)) {
+            const vecteur& apres = p->getPosition();
+
+            if (apres.getX() != x0 || apres.getY() != y0 || apres.getZ() != z0) {
+                modification = true;
+            }
+
             survivantes.push_back(p);
         } else {
             delete p;
+            modification = true;
         }
     }
 
     particules = std::move(survivantes);
     num_particules = static_cast<int>(particules.size());
+
+    return modification;
 }
 
 /**
@@ -947,6 +1225,40 @@ void univers::limite_vitesses(int N1, int N2) {
     }
 }
 
+void univers::calcule_forces() {
+    if (utiliser_liste_verlet && (dim == 2 || dim == 3)) {
+        if (!verlet_valide || doit_reconstruire_liste_verlet()) {
+            place_particules_dans_cellules();
+            construire_liste_verlet();
+        }
+
+        calcule_forces_verlet_omp();
+        return;
+    }
+
+    if (dim == 2) {
+        calcule_forces_omp_2d();
+    } else {
+        calcule_forces_omp_3d();
+    }
+}
+
+void univers::calcule_forces_sequentiel() {
+    if (dim == 2) {
+        calcule_forces_sequentiel_2d();
+    } else {
+        calcule_forces_sequentiel_3d();
+    }
+}
+
+void univers::calcule_forces_verlet_omp() {
+    if (dim == 2) {
+        calcule_forces_verlet_omp_2d();
+    } else {
+        calcule_forces_verlet_omp_3d();
+    }
+}
+
 /**
  * @brief Calcule les forces de Lennard-Jones sur toutes les particules.
  *
@@ -963,7 +1275,7 @@ void univers::limite_vitesses(int N1, int N2) {
  *
  * La force utilisée correspond à une interaction de type Lennard-Jones.
  */
-void univers::calcule_forces() {
+void univers::calcule_forces_omp_3d() {
     const int N = static_cast<int>(particules.size());
     if (N == 0) return; // pas de particule, pas de force à calculer
 
@@ -971,7 +1283,7 @@ void univers::calcule_forces() {
 
     // Pour les petits systems ou peu de cellules occupées, le parallélisme peut ne être rentable (reste à vérifier)
     if (nb_threads <= 1 || N < 6000 || cellules_occupees.size() < 4 * static_cast<size_t>(nb_threads)) {
-        calcule_forces_sequentiel();
+        calcule_forces_sequentiel_3d();
         return;
     }
 
@@ -1111,7 +1423,7 @@ void univers::calcule_forces() {
 }
 
 
-void univers::calcule_forces_sequentiel(){
+void univers::calcule_forces_sequentiel_3d(){
     const double r_cut2 = r_cut * r_cut;
     const double sigma2 = sigma * sigma;
     const double coeff = 24.0 * this->eps;
@@ -1176,6 +1488,414 @@ void univers::calcule_forces_sequentiel(){
     }
 }
 
+void univers::calcule_forces_sequentiel_2d() {
+    const double r_cut2 = r_cut * r_cut;
+    const double sigma2 = sigma * sigma;
+    const double coeff = 24.0 * eps;
+
+    for (cellule* c : cellules_occupees) {
+        const auto& parts = c->getParticules();
+
+        for (const cellule* v : c->getVoisins()) {
+            const auto& vois = v->getParticules();
+            if (vois.empty()) continue;
+
+            if (v == c) {
+                for (size_t i = 0; i < parts.size(); ++i) {
+                    particule* pi = parts[i];
+
+                    const vecteur& posi = pi->getPosition();
+                    const double xi = posi.getX();
+                    const double yi = posi.getY();
+
+                    for (size_t j = i + 1; j < parts.size(); ++j) {
+                        particule* pj = parts[j];
+
+                        const vecteur& posj = pj->getPosition();
+
+                        const double rx = posj.getX() - xi;
+                        const double ry = posj.getY() - yi;
+
+                        const double dist2 = rx * rx + ry * ry + 1e-12;
+                        if (dist2 > r_cut2) continue;
+
+                        const double sr2 = sigma2 / dist2;
+                        const double sr6 = sr2 * sr2 * sr2;
+                        const double coeff_force =
+                            coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
+
+                        const double fx = rx * coeff_force;
+                        const double fy = ry * coeff_force;
+
+                        pi->ajouterForce( fx,  fy, 0.0);
+                        pj->ajouterForce(-fx, -fy, 0.0);
+                    }
+                }
+            } else {
+                for (particule* pi : parts) {
+                    const vecteur& posi = pi->getPosition();
+                    const double xi = posi.getX();
+                    const double yi = posi.getY();
+
+                    for (particule* pj : vois) {
+                        const vecteur& posj = pj->getPosition();
+
+                        const double rx = posj.getX() - xi;
+                        const double ry = posj.getY() - yi;
+
+                        const double dist2 = rx * rx + ry * ry + 1e-12;
+                        if (dist2 > r_cut2) continue;
+
+                        const double sr2 = sigma2 / dist2;
+                        const double sr6 = sr2 * sr2 * sr2;
+                        const double coeff_force =
+                            coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
+
+                        const double fx = rx * coeff_force;
+                        const double fy = ry * coeff_force;
+
+                        pi->ajouterForce( fx,  fy, 0.0);
+                        pj->ajouterForce(-fx, -fy, 0.0);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void univers::calcule_forces_omp_2d() {
+    const int N = static_cast<int>(particules.size());
+    if (N == 0) return;
+
+    const int nb_threads = omp_get_max_threads();
+
+    if (nb_threads <= 1 ||
+        N < 6000 ||
+        cellules_occupees.size() < 4 * static_cast<size_t>(nb_threads)) {
+        calcule_forces_sequentiel_2d();
+        return;
+    }
+
+    prepare_omp_force_buffers();
+
+    const double r_cut2 = r_cut * r_cut;
+    const double sigma2 = sigma * sigma;
+    const double coeff = 24.0 * eps;
+
+    const int nb_cellules_occ = static_cast<int>(cellules_occupees.size());
+
+    #pragma omp parallel
+    {
+        const int tid = omp_get_thread_num();
+        const size_t base = static_cast<size_t>(tid) * N;
+
+        #pragma omp for schedule(dynamic, 32)
+        for (int ci = 0; ci < nb_cellules_occ; ++ci) {
+            cellule* c = cellules_occupees[ci];
+            const auto& parts = c->getParticules();
+
+            for (const cellule* v : c->getVoisins()) {
+                const auto& vois = v->getParticules();
+                if (vois.empty()) continue;
+
+                if (v == c) {
+                    for (size_t i = 0; i < parts.size(); ++i) {
+                        particule* pi = parts[i];
+                        const int idi = pi->getIndexUnivers();
+
+                        const vecteur& posi = pi->getPosition();
+                        const double xi = posi.getX();
+                        const double yi = posi.getY();
+
+                        for (size_t j = i + 1; j < parts.size(); ++j) {
+                            particule* pj = parts[j];
+                            const int idj = pj->getIndexUnivers();
+
+                            const vecteur& posj = pj->getPosition();
+
+                            const double rx = posj.getX() - xi;
+                            const double ry = posj.getY() - yi;
+
+                            const double dist2 = rx * rx + ry * ry + 1e-12;
+                            if (dist2 > r_cut2) continue;
+
+                            const double sr2 = sigma2 / dist2;
+                            const double sr6 = sr2 * sr2 * sr2;
+                            const double coeff_force =
+                                coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
+
+                            const double fx = rx * coeff_force;
+                            const double fy = ry * coeff_force;
+
+                            omp_fx[base + idi] += fx;
+                            omp_fy[base + idi] += fy;
+
+                            omp_fx[base + idj] -= fx;
+                            omp_fy[base + idj] -= fy;
+                        }
+                    }
+                } else {
+                    for (particule* pi : parts) {
+                        const int idi = pi->getIndexUnivers();
+
+                        const vecteur& posi = pi->getPosition();
+                        const double xi = posi.getX();
+                        const double yi = posi.getY();
+
+                        for (particule* pj : vois) {
+                            const int idj = pj->getIndexUnivers();
+
+                            const vecteur& posj = pj->getPosition();
+
+                            const double rx = posj.getX() - xi;
+                            const double ry = posj.getY() - yi;
+
+                            const double dist2 = rx * rx + ry * ry + 1e-12;
+                            if (dist2 > r_cut2) continue;
+
+                            const double sr2 = sigma2 / dist2;
+                            const double sr6 = sr2 * sr2 * sr2;
+                            const double coeff_force =
+                                coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
+
+                            const double fx = rx * coeff_force;
+                            const double fy = ry * coeff_force;
+
+                            omp_fx[base + idi] += fx;
+                            omp_fy[base + idi] += fy;
+
+                            omp_fx[base + idj] -= fx;
+                            omp_fy[base + idj] -= fy;
+                        }
+                    }
+                }
+            }
+        }
+
+        #pragma omp for schedule(static)
+        for (int i = 0; i < N; ++i) {
+            double sx = 0.0;
+            double sy = 0.0;
+
+            for (int t = 0; t < nb_threads; ++t) {
+                const size_t idx = static_cast<size_t>(t) * N + i;
+                sx += omp_fx[idx];
+                sy += omp_fy[idx];
+            }
+
+            particules[i]->ajouterForce(sx, sy, 0.0);
+        }
+    }
+}
+
+void univers::calcule_forces_verlet_omp_2d() {
+    const int N = static_cast<int>(particules.size());
+    if (N == 0) return;
+
+    const int nb_threads = omp_get_max_threads();
+
+    if (nb_threads <= 1 || paires_verlet.size() < 10000) {
+        const double r_cut2 = r_cut * r_cut;
+        const double sigma2 = sigma * sigma;
+        const double coeff = 24.0 * eps;
+
+        for (const auto& paire : paires_verlet) {
+            particule* pi = particules[paire.first];
+            particule* pj = particules[paire.second];
+
+            const vecteur& posi = pi->getPosition();
+            const vecteur& posj = pj->getPosition();
+
+            const double rx = posj.getX() - posi.getX();
+            const double ry = posj.getY() - posi.getY();
+
+            const double dist2 = rx * rx + ry * ry + 1e-12;
+            if (dist2 > r_cut2) continue;
+
+            const double sr2 = sigma2 / dist2;
+            const double sr6 = sr2 * sr2 * sr2;
+            const double coeff_force =
+                coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
+
+            const double fx = rx * coeff_force;
+            const double fy = ry * coeff_force;
+
+            pi->ajouterForce( fx,  fy, 0.0);
+            pj->ajouterForce(-fx, -fy, 0.0);
+        }
+
+        return;
+    }
+
+    prepare_omp_force_buffers();
+
+    const double r_cut2 = r_cut * r_cut;
+    const double sigma2 = sigma * sigma;
+    const double coeff = 24.0 * eps;
+
+    const int M = static_cast<int>(paires_verlet.size());
+
+    #pragma omp parallel
+    {
+        const int tid = omp_get_thread_num();
+        const size_t base = static_cast<size_t>(tid) * N;
+
+        #pragma omp for schedule(static)
+        for (int k = 0; k < M; ++k) {
+            const int idi = paires_verlet[k].first;
+            const int idj = paires_verlet[k].second;
+
+            particule* pi = particules[idi];
+            particule* pj = particules[idj];
+
+            const vecteur& posi = pi->getPosition();
+            const vecteur& posj = pj->getPosition();
+
+            const double rx = posj.getX() - posi.getX();
+            const double ry = posj.getY() - posi.getY();
+
+            const double dist2 = rx * rx + ry * ry + 1e-12;
+            if (dist2 > r_cut2) continue;
+
+            const double sr2 = sigma2 / dist2;
+            const double sr6 = sr2 * sr2 * sr2;
+            const double coeff_force =
+                coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
+
+            const double fx = rx * coeff_force;
+            const double fy = ry * coeff_force;
+
+            omp_fx[base + idi] += fx;
+            omp_fy[base + idi] += fy;
+
+            omp_fx[base + idj] -= fx;
+            omp_fy[base + idj] -= fy;
+        }
+
+        #pragma omp for schedule(static)
+        for (int i = 0; i < N; ++i) {
+            double sx = 0.0;
+            double sy = 0.0;
+
+            for (int t = 0; t < nb_threads; ++t) {
+                const size_t idx = static_cast<size_t>(t) * N + i;
+                sx += omp_fx[idx];
+                sy += omp_fy[idx];
+            }
+
+            particules[i]->ajouterForce(sx, sy, 0.0);
+        }
+    }
+}
+
+void univers::calcule_forces_verlet_omp_3d() {
+    const int N = static_cast<int>(particules.size());
+    if (N == 0) return;
+
+    const int nb_threads = omp_get_max_threads();
+
+    if (nb_threads <= 1 || paires_verlet.size() < 10000) {
+        const double r_cut2 = r_cut * r_cut;
+        const double sigma2 = sigma * sigma;
+        const double coeff = 24.0 * eps;
+
+        for (const auto& paire : paires_verlet) {
+            particule* pi = particules[paire.first];
+            particule* pj = particules[paire.second];
+
+            const vecteur& posi = pi->getPosition();
+            const vecteur& posj = pj->getPosition();
+
+            const double rx = posj.getX() - posi.getX();
+            const double ry = posj.getY() - posi.getY();
+            const double rz = posj.getZ() - posi.getZ();
+
+            const double dist2 = rx * rx + ry * ry + rz * rz + 1e-12;
+            if (dist2 > r_cut2) continue;
+
+            const double sr2 = sigma2 / dist2;
+            const double sr6 = sr2 * sr2 * sr2;
+            const double coeff_force =
+                coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
+
+            const double fx = rx * coeff_force;
+            const double fy = ry * coeff_force;
+            const double fz = rz * coeff_force;
+
+            pi->ajouterForce( fx,  fy,  fz);
+            pj->ajouterForce(-fx, -fy, -fz);
+        }
+
+        return;
+    }
+
+    prepare_omp_force_buffers();
+
+    const double r_cut2 = r_cut * r_cut;
+    const double sigma2 = sigma * sigma;
+    const double coeff = 24.0 * eps;
+
+    const int M = static_cast<int>(paires_verlet.size());
+
+    #pragma omp parallel
+    {
+        const int tid = omp_get_thread_num();
+        const size_t base = static_cast<size_t>(tid) * N;
+
+        #pragma omp for schedule(static)
+        for (int k = 0; k < M; ++k) {
+            const int idi = paires_verlet[k].first;
+            const int idj = paires_verlet[k].second;
+
+            particule* pi = particules[idi];
+            particule* pj = particules[idj];
+
+            const vecteur& posi = pi->getPosition();
+            const vecteur& posj = pj->getPosition();
+
+            const double rx = posj.getX() - posi.getX();
+            const double ry = posj.getY() - posi.getY();
+            const double rz = posj.getZ() - posi.getZ();
+
+            const double dist2 = rx * rx + ry * ry + rz * rz + 1e-12;
+            if (dist2 > r_cut2) continue;
+
+            const double sr2 = sigma2 / dist2;
+            const double sr6 = sr2 * sr2 * sr2;
+            const double coeff_force =
+                coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
+
+            const double fx = rx * coeff_force;
+            const double fy = ry * coeff_force;
+            const double fz = rz * coeff_force;
+
+            omp_fx[base + idi] += fx;
+            omp_fy[base + idi] += fy;
+            omp_fz[base + idi] += fz;
+
+            omp_fx[base + idj] -= fx;
+            omp_fy[base + idj] -= fy;
+            omp_fz[base + idj] -= fz;
+        }
+
+        #pragma omp for schedule(static)
+        for (int i = 0; i < N; ++i) {
+            double sx = 0.0;
+            double sy = 0.0;
+            double sz = 0.0;
+
+            for (int t = 0; t < nb_threads; ++t) {
+                const size_t idx = static_cast<size_t>(t) * N + i;
+                sx += omp_fx[idx];
+                sy += omp_fy[idx];
+                sz += omp_fz[idx];
+            }
+
+            particules[i]->ajouterForce(sx, sy, sz);
+        }
+    }
+}
+
 void univers::prepare_omp_force_buffers() {
     const int nb_threads = omp_get_max_threads();
     const int N = static_cast<int>(particules.size());
@@ -1192,16 +1912,27 @@ void univers::prepare_omp_force_buffers() {
 
         omp_fx.resize(total);
         omp_fy.resize(total);
-        omp_fz.resize(total);
+
+        if (dim == 3) {
+            omp_fz.resize(total);
+        }
     }
 
     const size_t total = static_cast<size_t>(omp_threads_alloc) * omp_particles_alloc;
 
-    // Initialisation des buffers à zéro.
-    for (long long i = 0; i < static_cast<long long>(total); ++i) {
-        omp_fx[i] = 0.0;
-        omp_fy[i] = 0.0;
-        omp_fz[i] = 0.0;
+    if (dim == 2) {
+        #pragma omp parallel for schedule(static)
+        for (long long i = 0; i < static_cast<long long>(total); ++i) {
+            omp_fx[i] = 0.0;
+            omp_fy[i] = 0.0;
+        }
+    } else {
+        #pragma omp parallel for schedule(static)
+        for (long long i = 0; i < static_cast<long long>(total); ++i) {
+            omp_fx[i] = 0.0;
+            omp_fy[i] = 0.0;
+            omp_fz[i] = 0.0;
+        }
     }
 }
 
